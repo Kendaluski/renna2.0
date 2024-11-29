@@ -8,6 +8,7 @@ import cmd_db
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SECRET = os.getenv('SECRET_MESSAGE')
+SECRET2= os.getenv('SECRET_MESSAGE2')
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -24,6 +25,8 @@ async def on_message(message):
 	cont = message.content.lower()
 	if SECRET.lower() in cont:
 		await message.channel.send("Que sí locu que sí")
+	if SECRET2.lower() in cont:
+		await message.channel.send("Que sí any que tienes novio")
 	await bot.process_commands(message)
 
 bot.add_command(cmds.ping)
