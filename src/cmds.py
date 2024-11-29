@@ -18,7 +18,7 @@ async def da2(ctx, caras: int):
     res = random.randint(1, caras)
     await ctx.send("Y ha salido un... " + str(res))
 
-@commands.command(name="pkinfo", help="Este comando envía una imagen de un pokémon")
+@commands.command(name="pkinfo", help="Este comando muestra información del pokémon deseado, el nombre, los tipos y sus estadísticas")
 async def pkinfo(ctx, name: str):
     response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}')
     if response.status_code == 200:
