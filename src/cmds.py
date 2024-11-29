@@ -2,26 +2,22 @@ from discord.ext import commands
 import random
 import requests
 import discord
-from utils import translate, calculate_typing, is_in_specific_channel
+from utils import translate, calculate_typing
 
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
-@commands.check(is_in_specific_channel)
 async def ping(ctx):
     await ctx.send('pong')
 
 @commands.command(name='mondongo', help="Sorpresa lokete")
-@commands.check(is_in_specific_channel)
 async def mondongo(ctx):
     await ctx.send('jeje goz')
 
 @commands.command(name='da2', help="Este comando tira un dado de X caras")
-@commands.check(is_in_specific_channel)
 async def da2(ctx, caras: int):
     res = random.randint(1, caras)
     await ctx.send("Y ha salido un... " + str(res))
 
 @commands.command(name="pkinfo", help="Este comando muestra información del pokémon deseado, el nombre, los tipos y sus estadísticas")
-@commands.check(is_in_specific_channel)
 async def pkinfo(ctx, name: str):
     response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}')
     if response.status_code == 200:
@@ -74,7 +70,6 @@ async def pkinfo(ctx, name: str):
         await ctx.send("Pokémon no encontrado, comprueba que has escrito bien el nombre y que el pokémon existe")
 
 @commands.command(name="tipos", help="Este comando recibe uno o varios tipos de pokémon y retorna sus debilidades y resistencias")
-@commands.check(is_in_specific_channel)
 async def tipos(ctx, *args):
     if len(args) == 0 or len(args) > 2:
         await ctx.send("Debes ingresar uno o dos tipos")
