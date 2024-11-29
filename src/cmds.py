@@ -2,8 +2,7 @@ from discord.ext import commands
 import random
 import requests
 import discord
-from utils import translate
-from utils import calculate_typing
+from utils import translate, calculate_typing
 
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
 async def ping(ctx):
@@ -94,9 +93,10 @@ async def tipos(ctx, *args):
     embed = calculate_typing(response1.json(), response2)
     await ctx.send(embed=embed)
 
-
-
-    
-    
-    
-        
+@commands.command(name="muertes", help="Este comando muestra el número de muertes de todos los jogadores o de uno en concreto")
+async def muertes(ctx, *args):
+    if len(args) == 0:
+        print(ctx.guild.members)
+        await ctx.send("Muertes de todos")
+    else:
+        await ctx.send(f"Muertes de {args[0]}")
