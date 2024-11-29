@@ -57,19 +57,20 @@ async def muertes(ctx, *args):
         )
         cursor = conn.cursor()
         if len(args) == 0:
-            cursor.execute("SELECT name,deaths FROM pdc")
+            cursor.execute("SELECT name, COALESCE(deaths, 0) FROM pdc")
         else:
-            cursor.execute("SELECT name,deaths FROM pdc WHERE name = %s", (args[0],))
-        record = cursor.fetchone()
-        if record is None:
+            cursor.execute("SELECT name, COALESCE(deaths, 0) FROM pdc WHERE name = %s", (args[0],))
+        
+        records = cursor.fetchall()
+        if not records:
             await ctx.send("No se han encontrado resultados")
             return
+        
         res = []
-        while record is not None:
+        for record in records:
             name, deaths = record
-            deaths = deaths if deaths is not None else 0
-            res.append(record)
-            record = cursor.fetchone()
+            res.append((name, deaths))
+        
         res = "\n".join([f"A {r[0]} se le han muerto {r[1]} pokémon" for r in res])
         await ctx.send(res)
 
