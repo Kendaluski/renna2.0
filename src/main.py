@@ -24,6 +24,7 @@ async def on_message(message):
 	cont = message.content.lower()
 	if SECRET.lower() in cont:
 		await message.channel.send("Que sí locu que sí")
+	await bot.process_commands(message)
 
 bot.add_command(cmds.ping)
 bot.add_command(cmds.mondongo)
