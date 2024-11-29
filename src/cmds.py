@@ -92,11 +92,3 @@ async def tipos(ctx, *args):
         return
     embed = calculate_typing(response1.json(), response2)
     await ctx.send(embed=embed)
-
-@commands.command(name="muertes", help="Este comando muestra el número de muertes de todos los jogadores o de uno en concreto")
-async def muertes(ctx, *args):
-    if len(args) == 0:
-        print(ctx.guild.members)
-        await ctx.send("Muertes de todos")
-    else:
-        await ctx.send(f"Muertes de {args[0]}")
