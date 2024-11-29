@@ -22,7 +22,7 @@ async def on_message(message):
 	if message.author == bot.user:
 		return
 	cont = message.content.lower()
-	if cont.contains(SECRET):
+	if SECRET in cont:
 		await message.channel.send("Que sí locu que sí")
 
 bot.add_command(cmds.ping)
