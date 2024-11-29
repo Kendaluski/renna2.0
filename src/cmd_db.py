@@ -4,6 +4,7 @@ import requests
 import discord
 import os
 from dotenv import load_dotenv
+from main import is_in_specific_channel
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')
@@ -14,6 +15,7 @@ db_port = os.getenv('DB_PORT')
 
 @commands.command(name='addUser', help="Este comando añade un usuario a la base de datos")
 @commands.has_permissions(administrator=True)
+@commands.check(is_in_specific_channel)
 async def addUser(ctx, name: str):
     try:
         conn = psycopg2.connect(
