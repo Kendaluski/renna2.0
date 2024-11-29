@@ -2,8 +2,7 @@ from discord.ext import commands
 import random
 import requests
 import discord
-from utils import translate, calculate_typing
-from main import is_in_specific_channel
+from utils import translate, calculate_typing, is_in_specific_channel
 
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
 @commands.check(is_in_specific_channel)

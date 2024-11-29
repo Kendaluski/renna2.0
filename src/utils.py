@@ -1,4 +1,12 @@
 import discord
+import os
+from dotenv import load_dotenv
+
+SPECIFIC_CHANNEL_ID1 = int(os.getenv('SPECIFIC_CHANNEL_ID1'))
+SPECIFIC_CHANNEL_ID2 = int(os.getenv('SPECIFIC_CHANNEL_ID2'))
+
+def is_in_specific_channel(ctx):
+    return ctx.channel.id == SPECIFIC_CHANNEL_ID1 or ctx.channel.id == SPECIFIC_CHANNEL_ID2
 
 def translate(str):
     if str == "bug":

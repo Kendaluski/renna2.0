@@ -4,7 +4,7 @@ import requests
 import discord
 import os
 from dotenv import load_dotenv
-from main import is_in_specific_channel
+from utils import is_in_specific_channel
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')
