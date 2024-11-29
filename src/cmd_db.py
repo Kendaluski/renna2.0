@@ -11,11 +11,11 @@ db_port = os.getenv('DB_PORT')
 
 try:
 	conn = psycopg2.connect(
-		database="postgres",
-		user="postgres",
-		password="postgres",
-		host="db",
-		port="5432"
+		database=db_name,
+		user=db_user,
+		password=db_pass,
+		host=db_host,
+		port=db_port
 	)
 	cursor = conn.cursor()
 	cursor.execute("SELECT version();")
