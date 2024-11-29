@@ -65,11 +65,20 @@ async def muertes(ctx, *args):
             return
         
         res = []
+        max = 0
+        max_name = []
         for record in records:
             name, deaths = record
+            if deaths > max:
+                max = deaths
+                max_name.append(name)
+            if deaths == max:
+                max_name.append(name)
             res.append((name, deaths))
         
         res = "\n".join([f"A {r[0]} se le han muerto {r[1]} pokémon" for r in res])
+        if len(max_name) > 1:
+            res += f"\nLos que más muertes tienen son: {', '.join(max_name)} con {max} muertes"
         await ctx.send(res)
 
     except (Exception, psycopg2.Error) as error:

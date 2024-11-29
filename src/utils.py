@@ -2,6 +2,12 @@ import discord
 import os
 from dotenv import load_dotenv
 
+load_dotenv()
+SECRET_CHANNEL_ID = os.getenv('SECRET_CHANNEL_ID')
+
+def is_secret_channel(ctx):
+    return ctx.channel.id == int(SECRET_CHANNEL_ID)
+
 def translate(str):
     if str == "bug":
         return "Bicho"
