@@ -7,6 +7,7 @@ import cmd_db
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+SECRET = os.getenv('SECRET_MESSAGE')
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -15,6 +16,14 @@ bot = commands.Bot(command_prefix='+', intents=intents)
 @bot.event
 async def on_ready():
 	print(f'{bot.user.name} has connected to Discord!')
+
+@bot.event
+async def on_message(message):
+	if message.author == bot.user:
+		return
+	cont = message.content.lower()
+	if cont.contains(SECRET):
+		await message.channel.send("Que sí locu que sí")
 
 bot.add_command(cmds.ping)
 bot.add_command(cmds.mondongo)
