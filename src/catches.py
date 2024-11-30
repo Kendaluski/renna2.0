@@ -36,21 +36,21 @@ class CatchButton(discord.ui.Button):
                 port=db_port
             )
             cursor = conn.cursor()
-            cursor.execute("SELECT catched, last_catched FROM pusers WHERE user_id = %s", (user_id,))
+            cursor.execute("SELECT last_catched, daily_catch_count FROM pusers WHERE user_id = %s", (user_id,))
             result = cursor.fetchone()
-            catched, last_catched = result
+            last_catched, daily_catch_count = result
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
-                catched = False
-            if catched is None or catched == False:
-                catched = True
-                cursor.execute("UPDATE pusers SET catched = %s, last_catched = %s, daily_streak = daily_streak + 1 WHERE user_id = %s", (catched, last_catched, user_id,))
+                daily_catch_count = 1
+            if daily_catch_count is None or daily_catch_count < 3:
+                daily_catch_count = daily_catch_count + 1
+                cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s, daily_streak = daily_streak + 1 WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
                 conn.commit()
                 cursor.execute("INSERT INTO pcatches (user_id, pk_id, shiny) VALUES (%s, %s, %s)", (user_id, self.pkid, self.shiny,))
                 conn.commit()
                 await interaction.response.send_message("¡Has atrapado un pokémon!", ephemeral=True)
             else:
-                await interaction.response.send_message("Ya has atrapado un pokémon hoy", ephemeral=True)
+                await interaction.response.send_message("Ya has atrapado dos pokémon hoy", ephemeral=True)
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
             await interaction.response.send_message("An error occurred while catching the Pokémon.", ephemeral=True)
