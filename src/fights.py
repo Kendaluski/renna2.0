@@ -138,7 +138,7 @@ async def cp(ctx, pk2: int):
 			else:
 				winner = ctx.author
 			await ctx.send(f"¡{winner.mention} ha ganado el combate! Puede capturar un pokémon más hoy y se resetean sus tiradas")
-			cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, catched = False WHERE user_id = %s", (winner.id,))
+			cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 0 WHERE user_id = %s", (winner.id,))
 			conn.commit()
 
 	except (Exception, psycopg2.Error) as error:
