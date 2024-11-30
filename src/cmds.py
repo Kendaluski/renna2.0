@@ -58,12 +58,12 @@ async def pkinfo(ctx, name: str):
             info = "es god lokete"
 
         types = [translate(t['type']['name']) for t in data['types']]
-        des = f"**Este pokémon {info}**"
+        des = f"**[{data['id']}] Este pokémon {info}**"
 
         embed = discord.Embed(title=name.capitalize(), description=des, color=color)
         embed.set_thumbnail(url=image_url)
         embed.add_field(name="Tipos", value=", ".join(types), inline=False)
-        embed.add_field(name="Promedio de stats", value=avg_stats, inline=False)
+        embed.add_field(name="Total de stats", value=total, inline=False)
         embed.add_field(name="Estadísticas", value="\n".join(stats), inline=False)
         await ctx.send(embed=embed)
     else:
