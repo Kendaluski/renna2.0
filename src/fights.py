@@ -7,6 +7,7 @@ import random
 from dotenv import load_dotenv
 from utils import translate
 import shared
+from datetime import datetime, timedelta
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')
@@ -14,6 +15,8 @@ db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASS')
 db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
+
+cd_track = {}
 
 class AcceptButton(discord.ui.Button):
 	def __init__(self, pkid, cid, did):
@@ -59,14 +62,28 @@ class DeclineButton(discord.ui.Button):
 		await interaction.response.send_message("Has rechazado la pelea", ephemeral=True)
 		self.disabled = True
 		await interaction.message.edit(view=self.view)
+		await interaction.message.delete()
+		await interaction.followup.send(f"{interaction.user.name} ha rechazado la pelea (se caga <:SAJ:1259836031704895538>)", ephemeral=False)
 		if self.did in shared.fight_data:
 			shared.fight_data.pop(self.did)
+		if self.cid in cd_track:
+			cd_track.pop(self.cid)
 		
 
 
 @commands.command(name='fight', help="Este comando simula un combate pokémon contra otro jugador")
-@commands.cooldown(1, 3600, commands.BucketType.user)
 async def fight(ctx, pk1: int, enemy: discord.User):
+	uid = ctx.author.id
+	now = datetime.utcnow()
+	cd_p = timedelta(hours=1)
+	if uid in cd_track:
+		cd_end = cd_track[uid]
+		if now < cd_end:
+			r = cd_end - now
+			h, rem = divmod(r.seconds, 3600)
+			m, s = divmod(rem, 60)
+			await ctx.send(f"Debes esperar {m} minutos y {s} segundos para poder pelear de nuevo")
+			return
 	try:
 		conn = psycopg2.connect(
 			database=db_name,
@@ -87,6 +104,7 @@ async def fight(ctx, pk1: int, enemy: discord.User):
 		view.add_item(DeclineButton(ctx.author.id, enemy.id, pk1))
 
 		await ctx.send(f"{enemy.name}, {ctx.author.name} te ha desafiado a un combate pokémon", view=view)
+		cd_track[uid] = now + cd_p
 	except (Exception, psycopg2.Error) as error:
 		print("Error while connecting to PostgreSQL", error)
 		await ctx.send("An error occurred while fighting.")
@@ -100,11 +118,6 @@ async def fight_error(ctx, error):
 		await ctx.send("Debes ingresar el id de tu pokémon y mencionar a tu oponente!")
 	if isinstance(error, commands.BadArgument):
 		await ctx.send("Debes ingresar el id de tu pokémon (puedes verlo en pkinfo o pkl) y mencionar a quién quieras retar!")
-	if isinstance(error, commands.CommandOnCooldown):
-		ra = int(error.retry_after)
-		h, r = divmod(ra, 3600)
-		m, s = divmod(r, 60)
-		await ctx.send(f"Debes esperar {m} minutos y {s} segundos para poder pelear de nuevo")
 	else:
 		await ctx.send("Ha ocurrido un error al intentar pelear")
 
@@ -172,3 +185,37 @@ async def cp_error(ctx, error):
 		await ctx.send("Debes ingresar el id del pokémon con el que quieres pelear")
 	else:
 		await ctx.send("Ha ocurrido un error al intentar pelear")
+
+@commands.command(name='wins', help="Este comando muestra todas las victorias de todos los usuarios (si se añade all al comando) o de uno mismo si no se pone nada")
+async def wins(ctx, user: str = None):
+	try:
+		conn = psycopg2.connect(
+			database=db_name,
+			user=db_user,
+			password=db_pass,
+			host=db_host,
+			port=db_port
+		)
+		cursor = conn.cursor()
+		if user is None:
+			cursor.execute("SELECT user_id, wins FROM pusers WHERE user_id = %s", (ctx.author.id,))
+			result = cursor.fetchone()
+			if result is None:
+				await ctx.send("No has ganado ni una vez")
+			else:
+				await ctx.send(f"Has ganado {result[1]} veces")
+		elif user == "all":
+			cursor.execute("SELECT user_id, wins FROM pusers ORDER BY wins DESC")
+			result = cursor.fetchall()
+			embed = discord.Embed(title="Victorias de todos los usuarios", description="", color=0xFFA500)
+			for row in result:
+				user = await shared.bot.fetch_user(row[0])
+				embed.add_field(name=user.name, value=row[1], inline=True)
+			await ctx.send(embed=embed)
+	except (Exception, psycopg2.Error) as error:
+		print("Error while connecting to PostgreSQL", error)
+		await ctx.send("An error occurred while fetching wins.")
+	finally:
+		if conn:
+			cursor.close()
+			conn.close()

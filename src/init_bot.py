@@ -9,6 +9,8 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SECRET = os.getenv('SECRET_MESSAGE')
 SECRET2 = os.getenv('SECRET_MESSAGE2')
+ENV = os.getenv('ENV')
+TEST_SERVER_ID = os.getenv('TEST_SERVER_ID')
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -21,6 +23,8 @@ async def on_ready():
 @shared.bot.event
 async def on_message(message):
     if message.author == shared.bot.user:
+        return
+    if ENV == "dev" and message.guild.id != int(TEST_SERVER_ID):
         return
     cont = message.content.lower()
     if SECRET.lower() in cont:
@@ -47,6 +51,7 @@ shared.bot.add_command(catches.pkc)
 shared.bot.add_command(catches.pkl)
 shared.bot.add_command(fights.fight)
 shared.bot.add_command(fights.cp)
+shared.bot.add_command(fights.wins)
 
 def run_bot():
     shared.bot.run(TOKEN)
