@@ -40,7 +40,6 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.MissingRequiredArgument) and ctx.command.name == "da2":
         await ctx.send("Falta la cantidad de caras del dado, usa +da2 <cantidad_de_caras>")
 
-# Register commands
 shared.bot.add_command(cmds.ping)
 shared.bot.add_command(cmds.mondongo)
 shared.bot.add_command(cmds.da2)
@@ -55,6 +54,8 @@ shared.bot.add_command(fights.fight)
 shared.bot.add_command(fights.cp)
 shared.bot.add_command(fights.wins)
 shared.bot.add_command(fights.rcd)
+shared.bot.add_command(fights.getl)
+shared.bot.add_command(fights.dl)
 
 def run_bot():
     shared.bot.run(TOKEN)
