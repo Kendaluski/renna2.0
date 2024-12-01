@@ -3,7 +3,7 @@ import requests, discord, os, random, shared, asyncio, psycopg2
 from dotenv import load_dotenv
 from utils import translate, get_color
 from datetime import datetime, timedelta
-from league import same_league, get_league, both_have_pk, pk_in_league, n_l
+from league import same_league, get_league, both_have_pk, pk_in_league, n_l, init_league
 from daily_reset import daily_reset
 
 load_dotenv()
@@ -265,7 +265,9 @@ async def getl(ctx):
         cursor.execute("SELECT league FROM pusers WHERE user_id = %s", (ctx.author.id,))
         league = cursor.fetchone()[0]
         if league == 0 or league == None:
-            league = get_league(ctx.author.id)
+            league = init_league(ctx.author.id)
+            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (league, ctx.author.id))
+            conn.commit()
         if league == 100:
             await ctx.send(f"Tu rango de de stats es de 0 a 100")
         elif league == 300:
