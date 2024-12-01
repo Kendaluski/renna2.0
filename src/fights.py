@@ -193,7 +193,7 @@ async def cp(ctx, pk2: int):
             cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 1 WHERE user_id = %s", (winner.id,))
             conn.commit()
             l = n_l(winner.id)
-            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (l, challenger_id))
+            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (l, winner.id))
             conn.commit()
 
     except (Exception, psycopg2.Error) as error:
