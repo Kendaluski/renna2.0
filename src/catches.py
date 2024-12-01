@@ -174,7 +174,7 @@ async def pkl(ctx, *args):
                         if req.status_code == 200:
                             data = req.json()
                             image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
-                            avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
+                            avg_stats = sum(stat['base_stat'] for stat in data['stats'])
                             if shiny:
                                 name = f"{data['name']} **SHINY**"
                             else:
