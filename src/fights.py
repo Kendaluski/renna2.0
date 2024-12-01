@@ -1,13 +1,7 @@
-import psycopg2
 from discord.ext import commands
-import requests
-import discord
-import os
-import random
+import requests, discord, os, random, shared, asyncio, psycopg2
 from dotenv import load_dotenv
-from utils import translate
-import shared
-import asyncio
+from utils import translate, get_color
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -168,18 +162,8 @@ async def cp(ctx, pk2: int):
 			c1 = round(c1, 1)
 			c2 = avg2 / len(data2['stats'])
 			c2 = round(c2, 1)
-			if c1 < 50:
-				co1 = 0xff0000
-			elif c1 < 100:
-				co1 = 0xffff00
-			else:
-				co1 = 0x0000ff
-			if c2 < 50:
-				co2 = 0xff0000
-			elif c2 < 100:
-				co2 = 0xffff00
-			else:
-				co2 = 0x0000ff
+			co1 = get_color(c1)
+			co2 = get_color(c2)
 			embed1 = discord.Embed(title=f"{data1['name']} Retador", description=f"Stats: {avg1}", color=co1)
 			embed1.set_image(url=data1['sprites']['front_shiny'] if s1 else data1['sprites']['front_default'])
 			embed2 = discord.Embed(title=f"{data2['name']} Defensor", description=f"Stats: {avg2}", color=co2)

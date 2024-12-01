@@ -1,6 +1,7 @@
 import discord
 import os
 from dotenv import load_dotenv
+from shared import type_dict
 
 load_dotenv()
 SECRET_CHANNEL_ID = os.getenv('SECRET_CHANNEL_ID')
@@ -9,79 +10,10 @@ def is_secret_channel(ctx):
     return ctx.channel.id == int(SECRET_CHANNEL_ID)
 
 def translate(str):
-    if str == "bug":
-        return "Bicho"
-    if str == "dark":
-        return "Siniestro"
-    if str == "dragon":
-        return "Dragón"
-    if str == "electric":
-        return "Eléctrico"
-    if str == "fairy":
-        return "Hada"
-    if str == "fighting":
-        return "Lucha"
-    if str == "fire":
-        return "Fuego"
-    if str == "flying":
-        return "Volador"
-    if str == "ghost":
-        return "Fantasma"
-    if str == "grass":
-        return "Planta"
-    if str == "ground":
-        return "Tierra"
-    if str == "ice":
-        return "Hielo"
-    if str == "normal":
-        return "Normal"
-    if str == "poison":
-        return "Veneno"
-    if str == "psychic":
-        return "Psíquico"
-    if str == "rock":
-        return "Roca"
-    if str == "steel":
-        return "Acero"
-    if str == "water":
-        return "Agua"
-    if str.lower() == "bicho":
-        return "Bug"
-    if str.lower() == "siniestro":
-        return "Dark"
-    if str.lower() == "dragón" or str.lower() == "dragon":
-        return "Dragon"
-    if str.lower() == "eléctrico" or str.lower() == "electrico":
-        return "Electric"
-    if str.lower() == "hada":
-        return "Fairy"
-    if str.lower() == "lucha":
-        return "Fighting"
-    if str.lower() == "fuego":
-        return "Fire"
-    if str.lower() == "volador":
-        return "Flying"
-    if str.lower() == "fantasma":
-        return "Ghost"
-    if str.lower() == "planta":
-        return "Grass"
-    if str.lower() == "tierra":
-        return "Ground"
-    if str.lower() == "hielo":
-        return "Ice"
-    if str.lower() == "normal":
-        return "Normal"
-    if str.lower() == "veneno":
-        return "Poison"
-    if str.lower() == "psíquico" or str.lower() == "psiquico":
-        return "Psychic"
-    if str.lower() == "roca":
-        return "Rock"
-    if str.lower() == "acero":
-        return "Steel"
-    if str.lower() == "agua":
-        return "Water"
-    return str
+    if str.lower() in type_dict:
+        return type_dict[str.lower()]
+    else:
+        return str
 
 def merge(l1, l2, r1, r2, n1, n2):
     merge = set(l1)
@@ -163,3 +95,11 @@ def calculate_typing(response1, response2):
         embed.add_field(name="Este pokémon no tiene inmunidades", value="Ninguna", inline=False)
     
     return embed
+
+def get_color(avg):
+    if avg < 50:
+        return(0xff0000)
+    elif avg < 100:
+        return(0xffff00)
+    else:
+        return(0x0000ff)

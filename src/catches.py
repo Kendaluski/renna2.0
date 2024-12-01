@@ -186,7 +186,10 @@ async def pkl(ctx, *args):
                     data = req.json()
                     image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
                     avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
-                    name = data['name']
+                    if shiny:
+                        name = f"{data['name']} **SHINY**"
+                    else:
+                        name = data['name']
                     id = data['id']
                     
                     if len(embed.fields) < 25:
