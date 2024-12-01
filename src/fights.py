@@ -195,9 +195,6 @@ async def cp(ctx, pk2: int):
             l = n_l(winner.id)
             cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (l, challenger_id))
             conn.commit()
-            l = n_l(ctx.author.id)
-            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (l, ctx.author.id))
-            conn.commit()
 
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
