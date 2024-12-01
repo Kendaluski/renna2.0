@@ -7,6 +7,7 @@ import random
 from dotenv import load_dotenv
 from utils import translate
 import shared
+import asyncio
 from datetime import datetime, timedelta
 
 load_dotenv()
@@ -37,12 +38,13 @@ class AcceptButton(discord.ui.Button):
 			await interaction.message.edit(view=self.view)
 			return
 		else:
-			await interaction.response.send_message("Has aceptado la pelea, elige tu pokémon con +cp <id>", ephemeral=True)
+			await interaction.response.send_message(f"{interaction.user.name} aceptado la pelea, elige tu pokémon con +cp <id>")
 			shared.fight_data[self.did] = {
 				"cid": self.cid,
 				"cpkid": self.pkid
 			}
 			self.disabled = True
+			self.view.children[1].disabled = True
 			await interaction.message.edit(view=self.view)
 
 class DeclineButton(discord.ui.Button):
@@ -59,11 +61,11 @@ class DeclineButton(discord.ui.Button):
 			await interaction.message.edit(view=self.view)
 			return
 
-		await interaction.response.send_message("Has rechazado la pelea", ephemeral=True)
 		self.disabled = True
+		self.view.children[0].disabled = True
 		await interaction.message.edit(view=self.view)
 		await interaction.message.delete()
-		await interaction.followup.send(f"{interaction.user.name} ha rechazado la pelea (se caga <:SAJ:1259836031704895538>)", ephemeral=False)
+		await interaction.channel.send(f"{interaction.user.name} ha rechazado la pelea (se caga <:SAJ:1259836031704895538>)")
 		if self.did in shared.fight_data:
 			shared.fight_data.pop(self.did)
 		if self.cid in cd_track:
@@ -149,7 +151,10 @@ async def cp(ctx, pk2: int):
 		if enemy is None:
 			await ctx.send("No se ha encontrado al retador")
 			return
-		await ctx.send(f"¡El combate entre {ctx.author.mention} y {enemy.mention} ha comenzado!")
+		s1 = result[1]
+		cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (challenger_id, pkid1,))
+		result = cursor.fetchone()
+		s2 = result[1]
 		cpk = shared.fight_data[ctx.author.id]['cpkid']
 		dpk = pk2
 		res = requests.get(f'https://pokeapi.co/api/v2/pokemon/{cpk}')
@@ -159,6 +164,26 @@ async def cp(ctx, pk2: int):
 			data2 = res2.json()
 			avg1 = sum([stat['base_stat'] for stat in data1['stats']])
 			avg2 = sum([stat['base_stat'] for stat in data2['stats']])
+			c1 = avg1 / len(data1['stats'])
+			c1 = round(c1, 1)
+			c2 = avg2 / len(data2['stats'])
+			c2 = round(c2, 1)
+			if c1 < 50:
+				co1 = 0xff0000
+			elif c1 < 100:
+				co1 = 0xffff00
+			else:
+				co1 = 0x0000ff
+			if c2 < 50:
+				co2 = 0xff0000
+			elif c2 < 100:
+				co2 = 0xffff00
+			else:
+				co2 = 0x0000ff
+			embed1 = discord.Embed(title=f"{data1['name']} Retador", description=f"Stats: {avg1}", color=co1)
+			embed1.set_image(url=data1['sprites']['front_shiny'] if s1 else data1['sprites']['front_default'])
+			embed2 = discord.Embed(title=f"{data2['name']} Defensor", description=f"Stats: {avg2}", color=co2)
+			embed2.set_image(url=data2['sprites']['front_shiny'] if s2 else data2['sprites']['front_default'])
 			if avg1 > avg2:
 				winner = await shared.bot.fetch_user(challenger_id)
 				if winner is None:
@@ -166,7 +191,9 @@ async def cp(ctx, pk2: int):
 					return
 			else:
 				winner = ctx.author
-			await ctx.send(f"¡{winner.mention} ha ganado el combate! Puede capturar un pokémon más hoy y se resetean sus tiradas")
+			await ctx.send("**¡La pelea ha comenzado!**", embeds=[embed1, embed2])
+			await asyncio.sleep(1)
+			await ctx.send(f"¡{winner.name} ha ganado el combate! Puede capturar un pokémon más hoy y se resetean sus tiradas")
 			cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 1 WHERE user_id = %s", (winner.id,))
 			conn.commit()
 
@@ -219,3 +246,12 @@ async def wins(ctx, user: str = None):
 		if conn:
 			cursor.close()
 			conn.close()
+
+@commands.command(name='rcd', help="Resets the cooldown for a user")
+@commands.has_permissions(administrator=True)
+async def rcd(ctx, user: discord.User):
+    if user.id in cd_track:
+        cd_track.pop(user.id)
+        await ctx.send(f"Cooldown for {user.mention} has been reset.")
+    else:
+        await ctx.send(f"{user.mention} does not have an active cooldown.")

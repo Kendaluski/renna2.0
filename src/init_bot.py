@@ -26,6 +26,8 @@ async def on_message(message):
         return
     if ENV == "dev" and message.guild.id != int(TEST_SERVER_ID):
         return
+    if ENV == "prod" and message.guild.id == int(TEST_SERVER_ID):
+        return
     cont = message.content.lower()
     if SECRET.lower() in cont:
         await message.channel.send("Que sí locu que sí")
@@ -52,6 +54,7 @@ shared.bot.add_command(catches.pkl)
 shared.bot.add_command(fights.fight)
 shared.bot.add_command(fights.cp)
 shared.bot.add_command(fights.wins)
+shared.bot.add_command(fights.rcd)
 
 def run_bot():
     shared.bot.run(TOKEN)
