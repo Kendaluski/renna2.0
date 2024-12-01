@@ -10,6 +10,7 @@ db_user = os.getenv('DB_USER')
 db_pass = os.getenv('DB_PASS')
 db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
+ALT_ID = int(os.getenv('ALT_ID'))
 
 cd_track = {}
 
@@ -165,9 +166,9 @@ async def cp(ctx, pk2: int):
 			co1 = get_color(c1)
 			co2 = get_color(c2)
 			embed1 = discord.Embed(title=f"{data1['name']} Retador", description=f"Stats: {avg1}", color=co1)
-			embed1.set_image(url=data1['sprites']['front_shiny'] if s1 else data1['sprites']['front_default'])
+			embed1.set_image(url=data1['sprites']['front_default'] if s1 else data1['sprites']['front_shiny'])
 			embed2 = discord.Embed(title=f"{data2['name']} Defensor", description=f"Stats: {avg2}", color=co2)
-			embed2.set_image(url=data2['sprites']['front_shiny'] if s2 else data2['sprites']['front_default'])
+			embed2.set_image(url=data2['sprites']['front_default'] if s2 else data2['sprites']['front_shiny'])
 			if avg1 > avg2:
 				winner = await shared.bot.fetch_user(challenger_id)
 				if winner is None:
@@ -221,6 +222,9 @@ async def wins(ctx, user: str = None):
 			embed = discord.Embed(title="Victorias de todos los usuarios", description="", color=0xFFA500)
 			for row in result:
 				user = await shared.bot.fetch_user(row[0])
+				print(user.id, ALT_ID)
+				if user is None or user.id == ALT_ID:
+					continue
 				embed.add_field(name=user.name, value=row[1], inline=True)
 			await ctx.send(embed=embed)
 	except (Exception, psycopg2.Error) as error:
