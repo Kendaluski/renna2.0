@@ -25,9 +25,13 @@ class AcceptButton(discord.ui.Button):
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user.id != self.did and interaction.user.id != self.cid:
 			await interaction.response.send_message("Tú no formas parte de esa pelea", ephemeral=True)
+			self.disabled = True
+			await interaction.message.edit(view=self.view)
 			return
 		if interaction.user.id == self.cid:
 			await interaction.response.send_message("No puedes pelear contra ti mismo", ephemeral=True)
+			self.disabled = True
+			await interaction.message.edit(view=self.view)
 			return
 		else:
 			await interaction.response.send_message("Has aceptado la pelea, elige tu pokémon con +cp <id>", ephemeral=True)
@@ -35,6 +39,8 @@ class AcceptButton(discord.ui.Button):
 				"cid": self.cid,
 				"cpkid": self.pkid
 			}
+			self.disabled = True
+			await interaction.message.edit(view=self.view)
 
 class DeclineButton(discord.ui.Button):
 	def __init__(self, cid, did, pkid):
@@ -46,15 +52,20 @@ class DeclineButton(discord.ui.Button):
 	async def callback(self, interaction: discord.Interaction):
 		if interaction.user.id != self.did:
 			await interaction.response.send_message("Tú no formas parte de esa pelea", ephemeral=True)
+			self.disabled = True
+			await interaction.message.edit(view=self.view)
 			return
 
 		await interaction.response.send_message("Has rechazado la pelea", ephemeral=True)
+		self.disabled = True
+		await interaction.message.edit(view=self.view)
 		if self.did in shared.fight_data:
 			shared.fight_data.pop(self.did)
 		
 
 
 @commands.command(name='fight', help="Este comando simula un combate pokémon contra otro jugador")
+@commands.cooldown(1, 3600, commands.BucketType.user)
 async def fight(ctx, pk1: int, enemy: discord.User):
 	try:
 		conn = psycopg2.connect(
@@ -75,7 +86,7 @@ async def fight(ctx, pk1: int, enemy: discord.User):
 		view.add_item(AcceptButton(pk1, ctx.author.id, enemy.id))
 		view.add_item(DeclineButton(ctx.author.id, enemy.id, pk1))
 
-		await ctx.send(f"{enemy.mention}, {ctx.author.mention} te ha desafiado a un combate pokémon", view=view)
+		await ctx.send(f"{enemy.name}, {ctx.author.name} te ha desafiado a un combate pokémon", view=view)
 	except (Exception, psycopg2.Error) as error:
 		print("Error while connecting to PostgreSQL", error)
 		await ctx.send("An error occurred while fighting.")
@@ -89,6 +100,11 @@ async def fight_error(ctx, error):
 		await ctx.send("Debes ingresar el id de tu pokémon y mencionar a tu oponente!")
 	if isinstance(error, commands.BadArgument):
 		await ctx.send("Debes ingresar el id de tu pokémon (puedes verlo en pkinfo o pkl) y mencionar a quién quieras retar!")
+	if isinstance(error, commands.CommandOnCooldown):
+		ra = int(error.retry_after)
+		h, r = divmod(ra, 3600)
+		m, s = divmod(r, 60)
+		await ctx.send(f"Debes esperar {m} minutos y {s} segundos para poder pelear de nuevo")
 	else:
 		await ctx.send("Ha ocurrido un error al intentar pelear")
 
@@ -138,7 +154,7 @@ async def cp(ctx, pk2: int):
 			else:
 				winner = ctx.author
 			await ctx.send(f"¡{winner.mention} ha ganado el combate! Puede capturar un pokémon más hoy y se resetean sus tiradas")
-			cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 0 WHERE user_id = %s", (winner.id,))
+			cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 1 WHERE user_id = %s", (winner.id,))
 			conn.commit()
 
 	except (Exception, psycopg2.Error) as error:

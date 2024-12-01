@@ -17,7 +17,7 @@ db_port = os.getenv('DB_PORT')
 
 class CatchButton(discord.ui.Button):
     def __init__(self, pkid, shiny, uid):
-        super().__init__(style=discord.ButtonStyle.primary, label="¡Lo quiero (1 al día)!")
+        super().__init__(style=discord.ButtonStyle.primary, label="¡Lo quiero (2 al día)!")
         self.pkid = pkid
         self.shiny = shiny
         self.uid = uid
@@ -41,19 +41,24 @@ class CatchButton(discord.ui.Button):
             last_catched, daily_catch_count = result
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
-                daily_catch_count = 1
-            if daily_catch_count is None or daily_catch_count < 3:
-                daily_catch_count = daily_catch_count + 1
-                cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s, daily_streak = daily_streak + 1 WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
+                daily_catch_count = 0
+            if daily_catch_count < 2:
+                daily_catch_count += 1
+                cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
                 conn.commit()
                 cursor.execute("INSERT INTO pcatches (user_id, pk_id, shiny) VALUES (%s, %s, %s)", (user_id, self.pkid, self.shiny,))
                 conn.commit()
                 await interaction.response.send_message("¡Has atrapado un pokémon!", ephemeral=True)
+                self.disabled = True
+                await interaction.message.edit(view=self.view)
+                if daily_catch_count == 2:
+                    cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
+                    conn.commit()
             else:
                 await interaction.response.send_message("Ya has atrapado dos pokémon hoy", ephemeral=True)
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
-            await interaction.response.send_message("An error occurred while catching the Pokémon.", ephemeral=True)
+            await interaction.followup.send_message("An error occurred while catching the Pokémon.", ephemeral=True)
         finally:
             if conn:
                 cursor.close()
@@ -108,6 +113,8 @@ async def pkc(ctx):
                     image_url = data['sprites']['front_shiny']
                     shiny = True
                     embed = discord.Embed(title="¡Un pokémon salvaje apareció!", description=f"Es un {translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
+                    cursor.execute("UPDATE pusers SET daily_streak = 0 WHERE user_id = %s", (ctx.author.id,))
+                    conn.commit()
                 else:
                     image_url = data['sprites']['front_default']
                     shiny = False
@@ -130,7 +137,7 @@ async def pkc(ctx):
 
 
 @commands.command(name="pkl", help="Este comando muestra los pokémon que ha atrapado un usuario")
-async def pkl(ctx):
+async def pkl(ctx, *args):
     try:
         conn = psycopg2.connect(
             database=db_name,
@@ -139,17 +146,14 @@ async def pkl(ctx):
             host=db_host,
             port=db_port
         )
-        cursor = conn.cursor()
-        cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
-        records = cursor.fetchall()
-        if not records:
-            await ctx.send("Aún no has atrapado ningún pokémon")
-            return
-        
-        embeds = []
-        embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0xFFA500)
-
-        for pk_id, shiny in records:
+        if args is not None and len(args) == 1:
+            cursor = conn.cursor()
+            cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, args[0],))
+            result = cursor.fetchone()
+            if result is None:
+                await ctx.send("No tienes ese pokémon")
+                return
+            pk_id, shiny = result
             req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
             if req.status_code == 200:
                 data = req.json()
@@ -157,19 +161,46 @@ async def pkl(ctx):
                 avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
                 name = data['name']
                 id = data['id']
-                
-                if len(embed.fields) < 25:
-                    embed.add_field(name=name, value=f"ID: {id} \nTipo: {', '.join([translate(t['type']['name']) for t in data['types']])}\n Stats: {avg_stats}", inline=True)
-                    embed.set_thumbnail(url=image_url)
+                types = [translate(t['type']['name']) for t in data['types']]
+                if shiny:
+                    embed = discord.Embed(title=f"Info del [{id}]{name} **SHINY** de {ctx.author.name}", color=0xFFA500)
                 else:
-                    embeds.append(embed)
-                    embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0xFFA500)
-                    embed.add_field(name=name, value=f"Tipo: {', '.join([translate(t['type']['name']) for t in data['types']])}\n Stats: {avg_stats}", inline=True)
-                    embed.set_thumbnail(url=image_url)
-        
-        embeds.append(embed)
-        for embed in embeds:
-            await ctx.send(embed=embed)
+                    embed = discord.Embed(title=f"Info del [{id}]{name} de {ctx.author.name}", color=0xFFA500)
+                embed.add_field(name="Tipo", value=", ".join(types), inline=False)
+                embed.add_field(name="Stats", value=avg_stats, inline=False)
+                embed.set_thumbnail(url=image_url)
+                await ctx.send(embed=embed)
+        else:
+            cursor = conn.cursor()
+            cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
+            records = cursor.fetchall()
+            if not records:
+                await ctx.send("Aún no has atrapado ningún pokémon")
+                return
+            
+            embeds = []
+            embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0xFFA500)
+            for pk_id, shiny in records:
+                req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
+                if req.status_code == 200:
+                    data = req.json()
+                    image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
+                    avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
+                    name = data['name']
+                    id = data['id']
+                    
+                    if len(embed.fields) < 25:
+                        embed.add_field(name=name, value=f"ID: {id} \nTipo: {', '.join([translate(t['type']['name']) for t in data['types']])}\n Stats: {avg_stats}", inline=True)
+                        embed.set_thumbnail(url=image_url)
+                    else:
+                        embeds.append(embed)
+                        embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0xFFA500)
+                        embed.add_field(name=name, value=f"Tipo: {', '.join([translate(t['type']['name']) for t in data['types']])}\n Stats: {avg_stats}", inline=True)
+                        embed.set_thumbnail(url=image_url)
+            
+            embeds.append(embed)
+            for embed in embeds:
+                await ctx.send(embed=embed)
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
         await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")
