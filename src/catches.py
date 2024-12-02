@@ -147,6 +147,30 @@ def l_check(stats, l):
     else:
         return False
 
+def get_fav(id):
+    try:
+        conn = psycopg2.connect(
+            database=db_name,
+            user=db_user,
+            password=db_pass,
+            host=db_host,
+            port=db_port
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT fav FROM pusers WHERE user_id = %s", (id,))
+        result = cursor.fetchone()
+        if result is None:
+            return None
+        else:
+            return result[0]
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+        return None
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+
 @commands.command(name="pkl", help="Este comando muestra los pokémon que ha atrapado un usuario")
 async def pkl(ctx, *args):
     try:
@@ -167,13 +191,29 @@ async def pkl(ctx, *args):
                     return
                 embeds = []
                 l = get_league(ctx.author.id)
+                f = get_fav(ctx.author.id)
+                image_url = None
+                if f:
+                    cursor.execute("SELECT shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, f,))
+                    shiny = cursor.fetchone()[0]
+                    req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{f}")
+                    if req.status_code == 200:
+                        data = req.json()
+                        image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
+                
+                if not image_url and result:
+                    pk_id, shiny, stats = result[-1]
+                    req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
+                    if req.status_code == 200:
+                        data = req.json()
+                        image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
+                
                 embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name} que están en su liga", color=0xFFA500)
                 for pk_id, shiny, stats in result:
                     if l_check(stats, l):
                         req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
                         if req.status_code == 200:
                             data = req.json()
-                            image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
                             avg_stats = sum(stat['base_stat'] for stat in data['stats'])
                             if shiny:
                                 name = f"{data['name']} **SHINY**"
@@ -229,13 +269,28 @@ async def pkl(ctx, *args):
                 await ctx.send("Aún no has atrapado ningún pokémon")
                 return
             
+            f = get_fav(ctx.author.id)
+            image_url = None
+            if f:
+                cursor.execute("SELECT shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, f,))
+                shiny = cursor.fetchone()[0]
+                req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{f}")
+                if req.status_code == 200:
+                    data = req.json()
+                    image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
+                
+                if not image_url and result:
+                    pk_id, shiny, stats = result[-1]
+                    req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
+                    if req.status_code == 200:
+                        data = req.json()
+                        image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
             embeds = []
             embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0xFFA500)
             for pk_id, shiny in records:
                 req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
                 if req.status_code == 200:
                     data = req.json()
-                    image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
                     avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
                     if shiny:
                         name = f"{data['name']} **SHINY**"
@@ -255,6 +310,35 @@ async def pkl(ctx, *args):
             embeds.append(embed)
             for embed in embeds:
                 await ctx.send(embed=embed)
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+        await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+
+@commands.command(name="fav", help="Este comando marca un pokémon como favorito")
+async def fav(ctx, id):
+    try:
+        conn = psycopg2.connect(
+            database=db_name,
+            user=db_user,
+            password=db_pass,
+            host=db_host,
+            port=db_port
+        )
+
+        cursor = conn.cursor()
+        cursor.execute("SELECT pk_id FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, id,))
+        result = cursor.fetchone()
+        if result is None:
+            await ctx.send("No tienes ese pokémon")
+        else:
+            cursor.execute("UPDATE pusers SET fav = %s WHERE user_id = %s", (id, ctx.author.id,))
+            conn.commit()
+            await ctx.send("Pokémon marcado como favorito")
+
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
         await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")

@@ -56,6 +56,7 @@ shared.bot.add_command(fights.wins)
 shared.bot.add_command(fights.rcd)
 shared.bot.add_command(fights.getl)
 shared.bot.add_command(fights.dl)
+shared.bot.add_command(catches.fav)
 
 def run_bot():
     shared.bot.run(TOKEN)
