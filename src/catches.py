@@ -191,23 +191,6 @@ async def pkl(ctx, *args):
                     return
                 embeds = []
                 l = get_league(ctx.author.id)
-                f = get_fav(ctx.author.id)
-                image_url = None
-                if f:
-                    cursor.execute("SELECT shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, f,))
-                    shiny = cursor.fetchone()[0]
-                    req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{f}")
-                    if req.status_code == 200:
-                        data = req.json()
-                        image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
-                
-                if not image_url and result:
-                    pk_id, shiny, stats = result[-1]
-                    req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
-                    if req.status_code == 200:
-                        data = req.json()
-                        image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
-                
                 embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name} que están en su liga", color=0xFFA500)
                 for pk_id, shiny, stats in result:
                     if l_check(stats, l):
@@ -215,6 +198,7 @@ async def pkl(ctx, *args):
                         if req.status_code == 200:
                             data = req.json()
                             avg_stats = sum(stat['base_stat'] for stat in data['stats'])
+                            image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
                             if shiny:
                                 name = f"{data['name']} **SHINY**"
                             else:
