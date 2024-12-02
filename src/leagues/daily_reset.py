@@ -1,7 +1,7 @@
-import os, psycopg2, asyncio
-from datetime import datetime, timedelta
+import os, psycopg2
+from datetime import datetime
 from dotenv import load_dotenv
-from league import get_league, init_league
+from leagues.league import init_league
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')

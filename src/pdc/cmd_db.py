@@ -1,7 +1,5 @@
 import psycopg2
 from discord.ext import commands
-import requests
-import discord
 import os
 from dotenv import load_dotenv
 

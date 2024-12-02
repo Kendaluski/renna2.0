@@ -2,7 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import cmds, cmd_db, catches, fights, shared
+import basics.cmds as cmds, pdc.cmd_db as cmd_db, catches.catches as catches, fights.fights as fights, shared, catches.pkl as pkl, fights.cp as cp, leagues.league as league
 
 
 load_dotenv()
@@ -48,15 +48,15 @@ shared.bot.add_command(cmds.tipos)
 shared.bot.add_command(cmd_db.muertes)
 shared.bot.add_command(cmd_db.addUser)
 shared.bot.add_command(cmd_db.addDeath)
+shared.bot.add_command(catches.fav)
 shared.bot.add_command(catches.pkc)
-shared.bot.add_command(catches.pkl)
+shared.bot.add_command(pkl.pkl)
 shared.bot.add_command(fights.fight)
-shared.bot.add_command(fights.cp)
+shared.bot.add_command(cp.cp)
 shared.bot.add_command(fights.wins)
 shared.bot.add_command(fights.rcd)
-shared.bot.add_command(fights.getl)
-shared.bot.add_command(fights.dl)
-shared.bot.add_command(catches.fav)
+shared.bot.add_command(league.getl)
+shared.bot.add_command(league.dl)
 
 def run_bot():
     shared.bot.run(TOKEN)

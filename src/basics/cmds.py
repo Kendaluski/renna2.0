@@ -2,7 +2,7 @@ from discord.ext import commands
 import random
 import requests
 import discord
-from utils import translate, calculate_typing
+from basics.utils import translate, calculate_typing
 
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
 async def ping(ctx):
@@ -43,7 +43,7 @@ async def pkinfo(ctx, name: str):
             total += svalue
             bar = "█" * int(svalue / 5)
             stats.append(f"{sname}: {svalue} \n {bar}")
-        image_url = data['sprites']['front_default']
+        image_url = data['sprites']['other']['showdown']['front_default']
 
         avg_stats = total / len(data['stats'])
         avg_stats = round(avg_stats, 1)

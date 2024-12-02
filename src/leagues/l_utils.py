@@ -1,5 +1,4 @@
-
-import requests, discord, os, random, shared, asyncio, psycopg2
+import os, psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
