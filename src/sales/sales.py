@@ -52,7 +52,7 @@ class ConfirmButton(discord.ui.Button):
                     total_to_add += 3
             total_to_add += 2 * s_count
             total_to_add = int(total_to_add)
-            cursor.execute(f"UPDATE pusers SET daily_catch_count = COALESCE(daily_catch_count, 0) + {total_to_add} WHERE user_id = {interaction.user.id}")
+            cursor.execute(f"UPDATE pusers SET daily_catch_count = COALESCE(daily_catch_count, 0) + {total_to_add}, count = COALESCE(count, 0) + {total_to_add} WHERE user_id = {interaction.user.id}")
             conn.commit()
             delete = "WITH cte AS ( SELECT id FROM pcatches WHERE user_id = %s AND pk_id = %s LIMIT %s) DELETE FROM pcatches WHERE id IN (SELECT id FROM cte);"
             if not self.all:
