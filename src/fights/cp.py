@@ -102,3 +102,4 @@ async def cp_error(ctx, error):
         await ctx.send("Debes ingresar el id del pokémon con el que quieres pelear")
     else:
         await ctx.send("Ha ocurrido un error al intentar pelear")
+cp.category = "Combates"

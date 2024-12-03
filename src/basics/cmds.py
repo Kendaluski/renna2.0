@@ -7,15 +7,18 @@ from basics.utils import translate, calculate_typing
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
 async def ping(ctx):
     await ctx.send('pong')
+ping.category = "Básicos"
 
 @commands.command(name='mondongo', help="Sorpresa lokete")
 async def mondongo(ctx):
     await ctx.send('jeje goz')
+mondongo.category = "Básicos"
 
 @commands.command(name='da2', help="Este comando tira un dado de X caras")
 async def da2(ctx, caras: int):
     res = random.randint(1, caras)
     await ctx.send("Y ha salido un... " + str(res))
+da2.category = "Básicos"
 
 @commands.command(name="pkinfo", help="Este comando muestra información del pokémon deseado, el nombre, los tipos y sus estadísticas")
 async def pkinfo(ctx, name: str):
@@ -68,6 +71,7 @@ async def pkinfo(ctx, name: str):
         await ctx.send(embed=embed)
     else:
         await ctx.send("Pokémon no encontrado, comprueba que has escrito bien el nombre y que el pokémon existe")
+pkinfo.category = "Info Pokémon"
 
 @commands.command(name="tipos", help="Este comando recibe uno o varios tipos de pokémon y retorna sus debilidades y resistencias")
 async def tipos(ctx, *args):
@@ -92,3 +96,4 @@ async def tipos(ctx, *args):
         return
     embed = calculate_typing(response1.json(), response2)
     await ctx.send(embed=embed)
+tipos.category = "Info Pokémon"

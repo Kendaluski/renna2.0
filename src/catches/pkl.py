@@ -92,3 +92,4 @@ async def pkl(ctx, *args):
         if conn:
             cursor.close()
             conn.close()
+pkl.category = "Atrapar Pokémon"

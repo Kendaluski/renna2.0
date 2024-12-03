@@ -72,6 +72,7 @@ async def fav_error(ctx, error):
         await ctx.send("Debes ingresar el id del pokémon que quieres marcar como favorito")
     else:
         await ctx.send("Ha ocurrido un error al intentar marcar el pokémon como favorito")
+fav.category = "Atrapar Pokémon"
 
 class CatchButton(discord.ui.Button):
     def __init__(self, pkid, shiny, uid, stats):
@@ -193,3 +194,4 @@ async def pkc(ctx):
         if conn:
             cursor.close()
             conn.close()
+pkc.category = "Atrapar Pokémon"

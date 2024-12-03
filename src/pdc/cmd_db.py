@@ -40,6 +40,7 @@ async def addUser_error(ctx, error):
         await ctx.send("No tienes permisos para ejecutar este comando")
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send("Falta el nombre del usuario")
+addUser.category = "Pokémon Discord Cup"
 
 @commands.command(name="muertes", help="Este comando muestra el número de muertes de todos los jogadores o de uno en concreto")
 async def muertes(ctx, *args):
@@ -86,6 +87,7 @@ async def muertes(ctx, *args):
         if conn:
             cursor.close()
             conn.close()
+muertes.category = "Pokémon Discord Cup"
 
 @commands.command(name="addDeath", help="Este comando suma una muerte a un jugador")
 @commands.has_permissions(administrator=True)
@@ -116,3 +118,4 @@ async def addDeath_error(ctx, error):
         await ctx.send("No tienes permisos para ejecutar este comando")
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send("Falta el nombre del usuario")
+addDeath.category = "Pokémon Discord Cup"

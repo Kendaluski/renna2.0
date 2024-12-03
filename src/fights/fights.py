@@ -122,6 +122,7 @@ async def fight_error(ctx, error):
         await ctx.send("Debes ingresar el id de tu pokémon (puedes verlo en pkinfo o pkl) y mencionar a quién quieras retar!")
     else:
         await ctx.send("Ha ocurrido un error al intentar pelear")
+fight.category = "Combates"
 
 @commands.command(name='wins', help="Este comando muestra todas las victorias de todos los usuarios (si se añade all al comando) o de uno mismo si no se pone nada")
 async def wins(ctx, user: str = None):
@@ -158,6 +159,7 @@ async def wins(ctx, user: str = None):
         if conn:
             cursor.close()
             conn.close()
+wins.category = "Combates"
 
 
 @commands.command(name='rcd', help="Resets the cooldown for a user")
@@ -168,3 +170,4 @@ async def rcd(ctx, user: discord.User):
         await ctx.send(f"Cooldown for {user.mention} has been reset.")
     else:
         await ctx.send(f"{user.mention} does not have an active cooldown.")
+rcd.category = "Combates"

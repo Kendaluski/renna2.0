@@ -56,6 +56,8 @@ async def getl(ctx):
         if conn:
             cursor.close()
             conn.close()
+getl.category = "Ligas"
+
 
 class ConfirmButton(discord.ui.Button):
     def __init__(self, user_id):
@@ -125,3 +127,5 @@ async def dl(ctx):
     view.add_item(ConfirmButton(ctx.author.id))
     view.add_item(CancelButton(ctx.author.id))
     await ctx.send("¿Estás seguro de que quieres bajar de liga? Esta acción solo se resetea a las 00", view=view)
+
+dl.category = "Ligas"
