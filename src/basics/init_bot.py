@@ -34,8 +34,10 @@ async def on_message(message):
     cont = message.content.lower()
     if SECRET.lower() in cont:
         await message.channel.send("Que sí locu que sí")
+        await message.channel.send("<:damn:1293650646343487520>")
     if SECRET2.lower() in cont:
         await message.channel.send("Que sí any que tienes novio")
+        await message.channel.send("<:damn:1293650646343487520>")
     if msg in cont or msg2 in cont:
         await message.channel.send("Pocha tu puta madre")
         await message.channel.send("<:bot_pocho:1313609070090911824> 😡")
