@@ -3,6 +3,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from leagues.l_utils import get_league, init_league, n_l
 from fights.fights import b_p_track
+from datetime import datetime
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')
@@ -13,6 +14,7 @@ db_port = os.getenv('DB_PORT')
 
 @commands.command(name="getl", help="Este comando te muestra el máximo de stat que tu pokémon puede tener a la hora de pelear")
 async def getl(ctx):
+    today = datetime.now().date()
     try:
         conn = psycopg2.connect(
             database=db_name,
@@ -22,9 +24,18 @@ async def getl(ctx):
             port=db_port
         )
         cursor = conn.cursor()
-        cursor.execute("SELECT league FROM pusers WHERE user_id = %s", (ctx.author.id,))
-        league = cursor.fetchone()[0]
+        cursor.execute("SELECT league, last_league FROM pusers WHERE user_id = %s", (ctx.author.id,))
+        res = cursor.fetchone()
+        league, last_league = res
         if league == 0 or league == None:
+            league = init_league(ctx.author.id)
+            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (league, ctx.author.id))
+            conn.commit()
+        if last_league == None:
+            last_league = today
+            cursor.execute("UPDATE pusers set last_league = %s WHERE user_id = %s", (last_league, ctx.author.id))
+            conn.commit()
+        if last_league < today:
             league = init_league(ctx.author.id)
             cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (league, ctx.author.id))
             conn.commit()

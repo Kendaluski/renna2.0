@@ -64,6 +64,14 @@ async def fav(ctx, id):
         if conn:
             cursor.close()
             conn.close()
+@fav.error
+async def fav_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Debes ingresar el id del pokémon que quieres marcar como favorito")
+    if isinstance(error, commands.BadArgument):
+        await ctx.send("Debes ingresar el id del pokémon que quieres marcar como favorito")
+    else:
+        await ctx.send("Ha ocurrido un error al intentar marcar el pokémon como favorito")
 
 class CatchButton(discord.ui.Button):
     def __init__(self, pkid, shiny, uid, stats):
