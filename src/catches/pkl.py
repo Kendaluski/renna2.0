@@ -48,7 +48,7 @@ async def pkl(ctx, *args):
                 embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name} que están en su liga", color=0x00FF00)
                 for pk_id, shiny, stats in result:
                     if l_check(stats, l):
-                        embeds = all_embeds(embeds, pk_id, shiny, ctx, None, embed)
+                        embed = all_embeds(embeds, pk_id, shiny, ctx, None, embed)
                     else:
                         continue
                 if len(embed.fields) > 0:
@@ -79,9 +79,9 @@ async def pkl(ctx, *args):
             embeds = []
             embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0x00FF00)
             for pk_id, shiny in records:
-                embeds = all_embeds(embeds, pk_id, shiny, ctx, image_url, embed)
-            
-            embeds.append(embed)
+                embed = all_embeds(embeds, pk_id, shiny, ctx, image_url, embed)
+            if len(embed.fields) > 0:
+                embeds.append(embed)
             for embed in embeds:
                 await ctx.send(embed=embed)
     except (Exception, psycopg2.Error) as error:

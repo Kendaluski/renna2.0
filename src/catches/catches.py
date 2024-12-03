@@ -76,7 +76,7 @@ fav.category = "Atrapar Pokémon"
 
 class CatchButton(discord.ui.Button):
     def __init__(self, pkid, shiny, uid, stats):
-        super().__init__(style=discord.ButtonStyle.primary, label="¡Lo quiero (2 al día)!")
+        super().__init__(style=discord.ButtonStyle.primary, label="¡Lo quiero (5 al día)!")
         self.pkid = pkid
         self.shiny = shiny
         self.uid = uid
@@ -115,7 +115,7 @@ class CatchButton(discord.ui.Button):
                     cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
                     conn.commit()
             else:
-                await interaction.response.send_message("Ya has atrapado dos pokémon hoy", ephemeral=True)
+                await interaction.response.send_message("Ya has atrapado cinco pokémon hoy", ephemeral=True)
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
             await interaction.followup.send_message("An error occurred while catching the Pokémon.", ephemeral=True)

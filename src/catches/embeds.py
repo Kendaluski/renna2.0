@@ -27,7 +27,7 @@ def all_embeds(embeds, pk_id, shiny, ctx, img, embed):
 			embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name} que están en su liga", color=0x00FF00)
 			embed.add_field(name=name, value=f"Tipo: {', '.join([translate(t['type']['name']) for t in data['types']])}\n Stats: {avg_stats}", inline=True)
 			embed.set_thumbnail(url=image_url)
-	return embeds
+	return embed
 
 def one_embed(shiny, pk_id, ctx):
 	embed = None

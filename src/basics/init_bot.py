@@ -2,7 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
-import basics.cmds as cmds, pdc.cmd_db as cmd_db, catches.catches as catches, fights.fights as fights, shared, catches.pkl as pkl, fights.cp as cp, leagues.league as league
+import basics.cmds as cmds, pdc.cmd_db as cmd_db, catches.catches as catches, fights.fights as fights, shared, catches.pkl as pkl, fights.cp as cp, leagues.league as league, sales.sales as sales
 from basics.custom_help import CustomHelpCmd
 
 
@@ -23,6 +23,8 @@ async def on_ready():
 
 @shared.bot.event
 async def on_message(message):
+    msg = "bot pocho"
+    msg2 = "bot_pocho"
     if message.author == shared.bot.user:
         return
     if ENV == "dev" and message.guild.id != int(TEST_SERVER_ID):
@@ -34,6 +36,9 @@ async def on_message(message):
         await message.channel.send("Que sí locu que sí")
     if SECRET2.lower() in cont:
         await message.channel.send("Que sí any que tienes novio")
+    if msg in cont or msg2 in cont:
+        await message.channel.send("Pocha tu puta madre")
+        await message.channel.send("<:bot_pocho:1313609070090911824> 😡")
     await shared.bot.process_commands(message)
 
 @shared.bot.event
@@ -58,6 +63,7 @@ shared.bot.add_command(fights.wins)
 shared.bot.add_command(fights.rcd)
 shared.bot.add_command(league.getl)
 shared.bot.add_command(league.dl)
+shared.bot.add_command(sales.sell)
 
 def run_bot():
     shared.bot.run(TOKEN)
