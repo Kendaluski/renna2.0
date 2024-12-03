@@ -199,3 +199,30 @@ async def pkc(ctx):
             cursor.close()
             conn.close()
 pkc.category = "Atrapar Pokémon"
+
+@commands.command(name="rolls", help="Este comando muestra tus tiradas de pokémon diarias restantes, así como la cantidad de pokémon que puedes capturar hoy y tu racha de capturas diarias")
+async def rolls(ctx):
+    try:
+        conn = psycopg2.connect(
+            database=db_name,
+            user=db_user,
+            password=db_pass,
+            host=db_host,
+            port=db_port
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT count, daily_catch_count, daily_streak FROM pusers WHERE user_id = %s", (ctx.author.id,))
+        result = cursor.fetchone()
+        if result is None:
+            await ctx.send("No tienes tiradas de pokémon disponibles")
+        else:
+            count, daily_catch_count, daily_streak = result
+            await ctx.send(f"Tienes {count} tiradas de pokémon diarias restantes, puedes atrapar {daily_catch_count} pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
+    except (Exception, psycopg2.Error) as error:
+        print("Error while connecting to PostgreSQL", error)
+        await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")
+    finally:
+        if conn:
+            cursor.close()
+            conn.close()
+rolls.category = "Atrapar Pokémon"

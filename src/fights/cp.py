@@ -51,8 +51,8 @@ async def fight(cursor, ctx, cid, cpkid, dpkid, conn, result):
             winner = ctx.author
         await ctx.send("**¡La pelea ha comenzado!**", embeds=[embed1, embed2])
         await asyncio.sleep(1)
-        await ctx.send(f"¡{winner.name} ha ganado el combate! Puede capturar un pokémon más hoy y se resetean sus tiradas")
-        cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 0, daily_catch_count = 1 WHERE user_id = %s", (winner.id,))
+        await ctx.send(f"¡{winner.name} ha ganado el combate! Puede capturar tres pokémon más hoy y recibe 6 tiradas")
+        cursor.execute("UPDATE pusers set wins = COALESCE(wins, 0) + 1, count = 6, daily_catch_count = 3 WHERE user_id = %s", (winner.id,))
         conn.commit()
         l = n_l(winner.id)
         cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (l, winner.id))

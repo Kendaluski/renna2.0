@@ -51,7 +51,7 @@ class ConfirmButton(discord.ui.Button):
                 elif stat[0] >= 700:
                     total_to_add += 3
             total_to_add += 2 * s_count
-            total_to_add = int(total_to_add)
+            total_to_add = total_to_add
             cursor.execute(f"UPDATE pusers SET daily_catch_count = COALESCE(daily_catch_count, 0) + {total_to_add}, count = COALESCE(count, 0) + {total_to_add} WHERE user_id = {interaction.user.id}")
             conn.commit()
             delete = "WITH cte AS ( SELECT id FROM pcatches WHERE user_id = %s AND pk_id = %s LIMIT %s) DELETE FROM pcatches WHERE id IN (SELECT id FROM cte);"
@@ -96,7 +96,7 @@ class CancelButton(discord.ui.Button):
         await interaction.message.delete()
 
 
-@commands.command(name="sell", help="Este comando vende todos los pokémon, el ID especificado, del usuario menos 1, a no ser que se le añada el argumento <all> después del ID. A cambio, el usuario recibe más capturas diarias, dependiendo de la cantidad de pokémon vendidos, sus estadísticas así como si es shiny o no.\n Si vendes un pokémon que tiene menos de 500 de stats, recibirás 0.5 capturas diarias por cada uno, si tiene entre 500 y 700, recibirás 1 captura diaria por cada uno y si tiene más de 700, recibirás 3 capturas diarias por cada uno. Además, si es shiny recibirás 2 capturas más por cada shiny")
+@commands.command(name="sell", help="Este comando vende todos los pokémon, el ID especificado, del usuario menos 1, a no ser que se le añada el argumento all después del ID. A cambio, el usuario recibe más capturas diarias, dependiendo de la cantidad de pokémon vendidos, sus estadísticas así como si es shiny o no.\n Si vendes un pokémon que tiene menos de 500 de stats, recibirás 0.5 capturas diarias por cada uno, si tiene entre 500 y 700, recibirás 1 captura diaria por cada uno y si tiene más de 700, recibirás 3 capturas diarias por cada uno. Además, si es shiny recibirás 2 capturas más por cada shiny")
 async def sell(ctx, id: int, *args):
     if id < 1:
         await ctx.send("El id del pokémon debe ser mayor a 0")
