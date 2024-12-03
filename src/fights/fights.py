@@ -77,6 +77,9 @@ async def fight(ctx, pk1: int, enemy: discord.User):
             m, s = divmod(rem, 60)
             await ctx.send(f"Debes esperar {m} minutos y {s} segundos para poder pelear de nuevo")
             return
+    if enemy.bot:
+        await ctx.send("No puedes pelear contra un bot")
+        return
     try:
         conn = psycopg2.connect(
             database=db_name,

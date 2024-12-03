@@ -172,12 +172,16 @@ async def pkc(ctx):
                 ap = bchance * (1 + daily_streak * 2)
                 if random.random() < ap:
                     image_url = data['sprites']['other']['showdown']['front_shiny']
+                    if image_url is None:
+                        image_url = data['sprites']['front_shiny']
                     shiny = True
                     embed = discord.Embed(title="¡Un pokémon salvaje apareció!", description=f"Es un {translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
                     cursor.execute("UPDATE pusers SET daily_streak = 0 WHERE user_id = %s", (ctx.author.id,))
                     conn.commit()
                 else:
                     image_url = data['sprites']['other']['showdown']['front_default']
+                    if image_url is None:
+                        image_url = data['sprites']['front_default']
                     shiny = False
                     embed = discord.Embed(title="¡Un pokémon salvaje apareció!", description=f"Es un {translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
 

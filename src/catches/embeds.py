@@ -11,6 +11,8 @@ def all_embeds(embeds, pk_id, shiny, ctx, img, embed):
 			image_url = img
 		else:
 			image_url = data['sprites']['other']['showdown']['front_shiny'] if shiny else data['sprites']['other']['showdown']['front_default']
+			if image_url is None:
+				image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
 		if shiny:
 			name = f"{data['name']} **SHINY**"
 		else:
@@ -33,6 +35,8 @@ def one_embed(shiny, pk_id, ctx):
 	if req.status_code == 200:
 		data = req.json()
 		image_url = data['sprites']['other']['showdown']['front_shiny'] if shiny else data['sprites']['other']['showdown']['front_default']
+		if image_url is None:
+			image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
 		avg_stats = sum(data['stats'][i]['base_stat'] for i in range(6))
 		name = data['name']
 		id = data['id']
@@ -56,6 +60,8 @@ def set_img(ctx, cursor, result):
 		if req.status_code == 200:
 			data = req.json()
 			image_url = data['sprites']['other']['showdown']['front_shiny'] if shiny else data['sprites']['other']['showdown']['front_default']
+			if image_url is None:
+				image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
 		
 		if not image_url and result:
 			pk_id, shiny, stats = result[-1]
@@ -63,4 +69,6 @@ def set_img(ctx, cursor, result):
 			if req.status_code == 200:
 				data = req.json()
 				image_url = data['sprites']['other']['showdown']['front_shiny'] if shiny else data['sprites']['other']['showdown']['front_default']
+				if image_url is None:
+					image_url = data['sprites']['front_shiny'] if shiny else data['sprites']['front_default']
 	return image_url

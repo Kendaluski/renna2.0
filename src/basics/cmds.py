@@ -47,6 +47,8 @@ async def pkinfo(ctx, name: str):
             bar = "█" * int(svalue / 5)
             stats.append(f"{sname}: {svalue} \n {bar}")
         image_url = data['sprites']['other']['showdown']['front_default']
+        if image_url is None:
+            image_url = data['sprites']['front_default']
 
         avg_stats = total / len(data['stats'])
         avg_stats = round(avg_stats, 1)
