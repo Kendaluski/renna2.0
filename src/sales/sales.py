@@ -96,7 +96,7 @@ class CancelButton(discord.ui.Button):
         await interaction.message.delete()
 
 
-@commands.command(name="sell", help="Este comando vende todos los pokémon, el ID especificado, del usuario menos 1. A cambio, el usuario recibe más capturas y probabilidad de shiny, dependiendo de la cantidad de pokémon vendidos, sus estadísticas así como si es shiny o no.")
+@commands.command(name="sell", help="Este comando vende todos los pokémon, el ID especificado, del usuario menos 1, a no ser que se le añada el argumento <all> después del ID. A cambio, el usuario recibe más capturas diarias, dependiendo de la cantidad de pokémon vendidos, sus estadísticas así como si es shiny o no.\n Si vendes un pokémon que tiene menos de 500 de stats, recibirás 0.5 capturas diarias por cada uno, si tiene entre 500 y 700, recibirás 1 captura diaria por cada uno y si tiene más de 700, recibirás 3 capturas diarias por cada uno. Además, si es shiny recibirás 2 capturas más por cada shiny")
 async def sell(ctx, id: int, *args):
     if id < 1:
         await ctx.send("El id del pokémon debe ser mayor a 0")
