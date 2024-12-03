@@ -1,7 +1,6 @@
-import psycopg2, requests, discord, os
+import psycopg2, discord, os
 from discord.ext import commands
 from dotenv import load_dotenv
-from basics.utils import translate
 from leagues.league import get_league
 from catches.embeds import all_embeds, one_embed, set_img
 

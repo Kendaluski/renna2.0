@@ -102,8 +102,8 @@ class CatchButton(discord.ui.Button):
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
                 daily_catch_count = 0
-            if daily_catch_count < 2:
-                daily_catch_count += 1
+            if daily_catch_count > 0:
+                daily_catch_count -= 1
                 cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
                 conn.commit()
                 cursor.execute("INSERT INTO pcatches (user_id, pk_id, shiny, stats) VALUES (%s, %s, %s, %s)", (user_id, self.pkid, self.shiny, self.stats))
@@ -111,7 +111,7 @@ class CatchButton(discord.ui.Button):
                 await interaction.response.send_message("¡Has atrapado un pokémon!", ephemeral=True)
                 self.disabled = True
                 await interaction.message.edit(view=self.view)
-                if daily_catch_count == 2:
+                if daily_catch_count == 0:
                     cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
                     conn.commit()
             else:
@@ -141,9 +141,9 @@ async def pkc(ctx):
         cursor.execute("SELECT count, last_used, daily_streak FROM pusers WHERE user_id = %s", (ctx.author.id,))
         result = cursor.fetchone()
         if result is None:
-            cursor.execute("INSERT INTO pusers (user_id, wins, daily_streak, count, last_used, last_league) VALUES (%s, 0, 0, 1, %s, %s)", (ctx.author.id,today,today,))
+            cursor.execute("INSERT INTO pusers (user_id, wins, daily_streak, count, last_used, last_league) VALUES (%s, 0, 0, 10, %s, %s)", (ctx.author.id,today,today,))
             daily_streak = 0
-            count = 1
+            count = 10
         else:
             cursor.execute("SELECT count, last_used, daily_streak FROM pusers WHERE user_id = %s", (ctx.author.id,))
             result = cursor.fetchone()
@@ -152,11 +152,11 @@ async def pkc(ctx):
                 last_used = today
             last_used_date = last_used
             if last_used_date < today:
-                count = 0
-            if count >= 5:
+                count = 10
+            if count == 0:
                 await ctx.send("Has alcanzado el límite de pokémon salvajes diarios, vuelve mañana")
                 return
-            cursor.execute("UPDATE pusers SET count = %s, last_used = %s WHERE user_id = %s", (count + 1, today, ctx.author.id,))
+            cursor.execute("UPDATE pusers SET count = %s, last_used = %s WHERE user_id = %s", (count - 1, today, ctx.author.id,))
         conn.commit()
         res = requests.get('https://pokeapi.co/api/v2/pokemon?limit=1118')
         if res.status_code == 200:
@@ -168,8 +168,8 @@ async def pkc(ctx):
                 types = [translate(t['type']['name']) for t in data['types']]
                 stats = sum([stat['base_stat'] for stat in data['stats']])
 
-                bchance = 1 / 128
-                ap = bchance * (1 + daily_streak * 2)
+                bchance = 1 / 512
+                ap = bchance * (daily_streak * 2)
                 if random.random() < ap:
                     image_url = data['sprites']['other']['showdown']['front_shiny']
                     if image_url is None:
