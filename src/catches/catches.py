@@ -101,7 +101,7 @@ class CatchButton(discord.ui.Button):
             last_catched, daily_catch_count = result
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
-                daily_catch_count = 0
+                daily_catch_count = 5
             if daily_catch_count > 0:
                 daily_catch_count -= 1
                 cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
