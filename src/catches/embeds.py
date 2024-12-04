@@ -31,7 +31,7 @@ def gen_embed(result, ctx, cursor, l=False,):
 					name = f"{name} ✨"
 				if f == pk_id:
 					name = f"{name} ❤"
-				embed.add_field(name=name, value=f"Stats: {stats}", inline=True)
+				embed.add_field(name=name, value=f"ID: {pk_id}\nStats: {stats}", inline=True)
 				embed.set_thumbnail(url=image_url)
 		embeds.append(embed)
 	return embeds

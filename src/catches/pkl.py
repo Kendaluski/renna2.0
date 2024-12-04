@@ -49,7 +49,11 @@ async def pkl(ctx, *args):
             if req.status_code == 200:
                 data = req.json()
                 name = data['name'].capitalize()
-            await get_pk_info(ctx, name)
+                shiny = False
+                for res in result:
+                    if res[2] is True:
+                        shiny = True
+            await get_pk_info(ctx, name, True, shiny)
         else:
             cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
             result = cursor.fetchall()
