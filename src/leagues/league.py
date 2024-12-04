@@ -28,6 +28,7 @@ async def getl(ctx):
         res = cursor.fetchone()
         league, last_league = res
         if league == 0 or league == None:
+            print("none")
             league = init_league(ctx.author.id)
             cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (league, ctx.author.id))
             conn.commit()
@@ -37,7 +38,7 @@ async def getl(ctx):
             conn.commit()
         if last_league < today:
             league = init_league(ctx.author.id)
-            cursor.execute("UPDATE pusers set league = %s WHERE user_id = %s", (league, ctx.author.id))
+            cursor.execute("UPDATE pusers set league = %s, last_league = %s WHERE user_id = %s", (league, today, ctx.author.id))
             conn.commit()
         if league == 100:
             await ctx.send(f"Tu rango de de stats es de 0 a 100")

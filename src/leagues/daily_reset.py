@@ -29,7 +29,7 @@ async def daily_reset():
 			if last_league is None:
 				last_league = today
 			if last_league < today:
-				cursor.execute("UPDATE pusers SET league = %s WHERE user_id = %s", (league, id))
+				cursor.execute("UPDATE pusers SET league = %s, last_league = %s WHERE user_id = %s", (league, today, id))
 				conn.commit()
 	except (Exception, psycopg2.Error) as error:
 		print("Error while connecting to PostgreSQL", error)
