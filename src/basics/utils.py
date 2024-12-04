@@ -35,7 +35,7 @@ def merge(l1, l2, r1, r2, n1, n2):
             merge.add(w)
     return merge
 
-def calculate_typing(response1, response2):
+def calculate_typing(response1, response2, user):
     ddf1 = response1['damage_relations']['double_damage_from']
     ddt1 = response1['damage_relations']['double_damage_to']
     hdf1 = response1['damage_relations']['half_damage_from']
@@ -72,7 +72,7 @@ def calculate_typing(response1, response2):
         mhdf = hdf1
         mndf = ndf1
 
-    des = "Debilidades y resistencias de: " + translate(response1['name'])
+    des = f"{user}, aquí tienes las debilidades y resistencias de: " + translate(response1['name'])
     if response2 is not None:
         des += " y " + translate(response2['name'])
     embed = discord.Embed(title=des, description="", color=0xFFA500)
@@ -103,7 +103,7 @@ def get_color(avg):
     else:
         return(0x0000ff)
     
-async def get_pk_info(ctx, name, f=False, s=False):
+async def get_pk_info(ctx, name, f=False, s=False, count=0):
     response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}')
     if response.status_code == 200:
         data = response.json()
@@ -156,7 +156,7 @@ async def get_pk_info(ctx, name, f=False, s=False):
         if f:
             if s:
                 name = name + " ✨"
-            name = name + " de " + ctx.author.name
+            name = name + " de " + ctx.author.name + f" ({count})"
         embed = discord.Embed(title=name.capitalize(), description=des, color=color)
         embed.set_thumbnail(url=image_url)
         embed.add_field(name="Tipos", value=", ".join(types), inline=False)

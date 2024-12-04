@@ -41,15 +41,15 @@ async def getl(ctx):
             cursor.execute("UPDATE pusers set league = %s, last_league = %s WHERE user_id = %s", (league, today, ctx.author.id))
             conn.commit()
         if league == 100:
-            await ctx.send(f"Tu rango de de stats es de 0 a 100")
+            await ctx.send(f"{ctx.author.name}, tu rango de de stats es de 0 a 100")
         elif league == 300:
-            await ctx.send(f"Tu rango de de stats es de 101 a 300")
+            await ctx.send(f"{ctx.author.name}, tu rango de de stats es de 101 a 300")
         elif league == 500:
-            await ctx.send(f"Tu rango de de stats es de 301 a 500")
+            await ctx.send(f"{ctx.author.name}, tu rango de de stats es de 301 a 500")
         elif league == 600:
-            await ctx.send(f"Tu rango de de stats es de 501 a 600")
+            await ctx.send(f"{ctx.author.name}, tu rango de de stats es de 501 a 600")
         elif league == 800:
-            await ctx.send("Tu rango de de stats es de 601 a 800")
+            await ctx.send(f"{ctx.author.name}, tu rango de de stats es de 601 a 800")
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
         await ctx.send("Se ha producido un error al intentar obtener la liga")
@@ -123,10 +123,10 @@ class CancelButton(discord.ui.Button):
 async def dl(ctx):
     l = get_league(ctx.author.id)
     if l == 100:
-        await ctx.send("Estás en la liga más baja, no puedes bajar más")
+        await ctx.send(f"{ctx.author.name} estás en la liga más baja, no puedes bajar más")
     view = discord.ui.View()
     view.add_item(ConfirmButton(ctx.author.id))
     view.add_item(CancelButton(ctx.author.id))
-    await ctx.send("¿Estás seguro de que quieres bajar de liga? Esta acción solo se resetea a las 00", view=view)
+    await ctx.send(f"¿Estás segur@, {ctx.author.name}, de que quieres bajar de liga? Esta acción solo se resetea a las 00", view=view)
 
 dl.category = "Ligas"

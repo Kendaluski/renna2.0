@@ -17,7 +17,7 @@ mondongo.category = "Básicos"
 @commands.command(name='da2', help="Este comando tira un dado de X caras")
 async def da2(ctx, caras: int):
     res = random.randint(1, caras)
-    await ctx.send("Y ha salido un... " + str(res))
+    await ctx.send(f"Y a {ctx.author.name} le ha salido un... " + str(res))
 da2.category = "Básicos"
 
 @commands.command(name="pkinfo", help="Este comando muestra información del pokémon deseado, el nombre, los tipos y sus estadísticas")
@@ -46,6 +46,6 @@ async def tipos(ctx, *args):
     if response2 is not None and response2.status_code != 200:
         await ctx.send(f"Tipo **{type2}** no encontrado, asegúrate que existe y lo has escrito bien")
         return
-    embed = calculate_typing(response1.json(), response2)
+    embed = calculate_typing(response1.json(), response2, ctx.author.name)
     await ctx.send(embed=embed)
 tipos.category = "Info Pokémon"

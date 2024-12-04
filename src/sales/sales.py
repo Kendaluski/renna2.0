@@ -120,10 +120,10 @@ async def sell(ctx, id: int, *args):
         cursor.execute(f"SELECT COUNT(pk_id), COUNT(shiny) FROM pcatches WHERE user_id = {ctx.author.id} AND pk_id = {id}")
         result = cursor.fetchall()
         if result[0][0] == 0:
-            await ctx.send("No tienes ese pokémon")
+            await ctx.send(f"{ctx.author.name}, no tienes ese pokémon")
             return
         if result[0][0] == 1 and not all:
-            await ctx.send("No puedes vender tu último pokémon")
+            await ctx.send(f"{ctx.author.name}, no puedes vender tu último pokémon si no lo especificas con 'all'")
             return
     except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
@@ -137,9 +137,9 @@ async def sell(ctx, id: int, *args):
     view.add_item(ConfirmButton(ctx.author.id, id, all))
     view.add_item(CancelButton(ctx.author.id))
     if not all:
-        await ctx.send("¿Estás seguro de que quieres vender todas las copias de ese pokémon? Recuerda que te quedarás con 1 siempre que no lo especifiques", view=view)
+        await ctx.send(f"¿{ctx.author.name} estás seguro de que quieres vender todas las copias de ese pokémon? Recuerda que te quedarás con 1 siempre que no lo especifiques", view=view)
     else:
-        await ctx.send("¿Estás seguro de que quieres vender todos los pokémon de ese ID?", view=view)
+        await ctx.send(f"¿{ctx.author.name} estás seguro de que quieres vender todos los pokémon de ese ID?", view=view)
     
 
 @sell.error

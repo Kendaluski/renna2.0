@@ -55,7 +55,11 @@ async def fav(ctx, id):
         else:
             cursor.execute("UPDATE pusers SET fav = %s WHERE user_id = %s", (id, ctx.author.id,))
             conn.commit()
-            await ctx.send("Pokémon marcado como favorito")
+            req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{id}")
+            if req.status_code == 200:
+                data = req.json()
+                name = data['name'].capitalize()
+            await ctx.send(f"{ctx.author.name}, se ha marcado a {name} como tu pokémon favorito")
 
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -214,10 +218,10 @@ async def rolls(ctx):
         cursor.execute("SELECT count, daily_catch_count, daily_streak FROM pusers WHERE user_id = %s", (ctx.author.id,))
         result = cursor.fetchone()
         if result is None:
-            await ctx.send("No tienes tiradas de pokémon disponibles")
+            await ctx.send(f"{ctx.author.name} no tienes tiradas de pokémon disponibles")
         else:
             count, daily_catch_count, daily_streak = result
-            await ctx.send(f"Tienes {count} tiradas de pokémon diarias restantes, puedes atrapar {daily_catch_count} pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
+            await ctx.send(f"{ctx.author.name}, tienes {count} tiradas de pokémon diarias restantes, puedes atrapar {daily_catch_count} pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
         await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")
