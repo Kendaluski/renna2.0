@@ -1,8 +1,10 @@
-import psycopg2, discord, os
+import psycopg2, discord, os, requests
 from discord.ext import commands
 from dotenv import load_dotenv
 from leagues.league import get_league
-from catches.embeds import all_embeds, one_embed, set_img
+from catches.embeds import gen_embed
+from catches.pages import PagesView
+from basics.utils import get_pk_info
 
 load_dotenv()
 db_name = os.getenv('DB_NAME')
@@ -35,55 +37,35 @@ async def pkl(ctx, *args):
             host=db_host,
             port=db_port
         )
-        if args is not None and len(args) == 1:
-            if args[0] == "l":
-                cursor = conn.cursor()
-                cursor.execute("SELECT pk_id, shiny, stats FROM pcatches WHERE user_id = %s", (ctx.author.id,))
-                result = cursor.fetchall()
-                if not result:
-                    await ctx.send("Aún no has atrapado ningún pokémon")
-                    return
-                embeds = []
-                l = get_league(ctx.author.id)
-                embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name} que están en su liga", color=0x00FF00)
-                for pk_id, shiny, stats in result:
-                    if l_check(stats, l):
-                        embed = all_embeds(embeds, pk_id, shiny, ctx, None, embed)
-                    else:
-                        continue
-                if len(embed.fields) > 0:
-                    embeds.append(embed)
-                    for embed in embeds:
-                        await ctx.send(embed=embed)
-                else:
-                    await ctx.send("No tienes pokémon para tu liga, puedes bajarte de liga usando +dl")
-            else:
-                cursor = conn.cursor()
-                cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, args[0],))
-                result = cursor.fetchone()
-                if result is None:
-                    await ctx.send("No tienes ese pokémon")
-                    return
-                pk_id, shiny = result
-                embed = one_embed(shiny, pk_id, ctx)
-                await ctx.send(embed=embed)
-        else:
-            cursor = conn.cursor()
-            cursor.execute("SELECT pk_id, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
-            records = cursor.fetchall()
-            if not records:
-                await ctx.send("Aún no has atrapado ningún pokémon")
+        cursor = conn.cursor()
+        if args and args[0] != "l":
+            pkid = (int)(args[0])
+            cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, pkid,))
+            result = cursor.fetchall()
+            if len(result) == 0:
+                await ctx.send("No tienes ese pokémon atrapado <:Sadge:1259834661622910988>")
                 return
-            
-            image_url = set_img(ctx, cursor, records)
-            embeds = []
-            embed = discord.Embed(title=f"Pokémon atrapados por {ctx.author.name}", color=0x00FF00)
-            for pk_id, shiny in records:
-                embed = all_embeds(embeds, pk_id, shiny, ctx, image_url, embed)
-            if len(embed.fields) > 0:
-                embeds.append(embed)
-            for embed in embeds:
-                await ctx.send(embed=embed)
+            req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pkid}")
+            if req.status_code == 200:
+                data = req.json()
+                name = data['name'].capitalize()
+            await get_pk_info(ctx, name)
+        else:
+            cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
+            result = cursor.fetchall()
+            if result is None:
+                await ctx.send("No tienes ningún pokémon atrapado <:Sadge:1259834661622910988>")
+                return
+            if args and args[0] == "l":
+                embeds = gen_embed(result, ctx, cursor, True)
+            elif len(args) == 0:
+                embeds = gen_embed(result, ctx, cursor)
+            if len(embeds) == 1:
+                await ctx.send(embed=embeds[0])
+                return
+            embeds[0].set_footer(text=f"Página 1/{len(embeds)}")
+            view = PagesView(embeds)
+            await ctx.send(embed=embeds[0], view=view)
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
         await ctx.send("Ha ocurrido un error, inténtalo de nuevo más tarde")

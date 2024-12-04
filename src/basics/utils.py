@@ -1,5 +1,4 @@
-import discord
-import os
+import discord, os, requests
 from dotenv import load_dotenv
 from shared import type_dict
 
@@ -103,3 +102,56 @@ def get_color(avg):
         return(0xffff00)
     else:
         return(0x0000ff)
+    
+async def get_pk_info(ctx, name):
+    response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}')
+    if response.status_code == 200:
+        data = response.json()
+        stats = []
+        total = 0
+        for stat in data['stats']:
+            sname = stat['stat']['name']
+            if sname == "hp":
+                sname = "PS"
+            if sname == "attack":
+                sname = "Ataque"
+            if sname == "defense":
+                sname = "Defensa"
+            if sname == "special-attack":
+                sname = "Ataque Especial"
+            if sname == "special-defense":
+                sname = "Defensa Especial"
+            if sname == "speed":
+                sname = "Velocidad"
+            
+            svalue = stat['base_stat']
+            total += svalue
+            bar = "█" * int(svalue / 5)
+            stats.append(f"{sname}: {svalue} \n {bar}")
+        image_url = data['sprites']['other']['showdown']['front_default']
+        if image_url is None:
+            image_url = data['sprites']['front_default']
+
+        avg_stats = total / len(data['stats'])
+        avg_stats = round(avg_stats, 1)
+        if avg_stats < 50:
+            color = 0xff0000
+            info = "es un mierdón"
+        elif avg_stats < 100:
+            color = 0xffff00
+            info = "cumple su función"
+        else:
+            color = 0x0000ff
+            info = "es god lokete"
+
+        types = [translate(t['type']['name']) for t in data['types']]
+        des = f"**[{data['id']}] Este pokémon {info}**"
+
+        embed = discord.Embed(title=name.capitalize(), description=des, color=color)
+        embed.set_thumbnail(url=image_url)
+        embed.add_field(name="Tipos", value=", ".join(types), inline=False)
+        embed.add_field(name="Total de stats", value=total, inline=False)
+        embed.add_field(name="Estadísticas", value="\n".join(stats), inline=False)
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("Pokémon no encontrado, comprueba que has escrito bien el nombre y que el pokémon existe")

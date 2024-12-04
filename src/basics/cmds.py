@@ -2,7 +2,7 @@ from discord.ext import commands
 import random
 import requests
 import discord
-from basics.utils import translate, calculate_typing
+from basics.utils import translate, calculate_typing, get_pk_info
 
 @commands.command(name='ping', help="Este comando retorna pong, sirve para comprobar si el bot está activo")
 async def ping(ctx):
@@ -22,57 +22,7 @@ da2.category = "Básicos"
 
 @commands.command(name="pkinfo", help="Este comando muestra información del pokémon deseado, el nombre, los tipos y sus estadísticas")
 async def pkinfo(ctx, name: str):
-    response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{name.lower()}')
-    if response.status_code == 200:
-        data = response.json()
-        stats = []
-        total = 0
-        for stat in data['stats']:
-            sname = stat['stat']['name']
-            if sname == "hp":
-                sname = "PS"
-            if sname == "attack":
-                sname = "Ataque"
-            if sname == "defense":
-                sname = "Defensa"
-            if sname == "special-attack":
-                sname = "Ataque Especial"
-            if sname == "special-defense":
-                sname = "Defensa Especial"
-            if sname == "speed":
-                sname = "Velocidad"
-            
-            svalue = stat['base_stat']
-            total += svalue
-            bar = "█" * int(svalue / 5)
-            stats.append(f"{sname}: {svalue} \n {bar}")
-        image_url = data['sprites']['other']['showdown']['front_default']
-        if image_url is None:
-            image_url = data['sprites']['front_default']
-
-        avg_stats = total / len(data['stats'])
-        avg_stats = round(avg_stats, 1)
-        if avg_stats < 50:
-            color = 0xff0000
-            info = "es un mierdón"
-        elif avg_stats < 100:
-            color = 0xffff00
-            info = "cumple su función"
-        else:
-            color = 0x0000ff
-            info = "es god lokete"
-
-        types = [translate(t['type']['name']) for t in data['types']]
-        des = f"**[{data['id']}] Este pokémon {info}**"
-
-        embed = discord.Embed(title=name.capitalize(), description=des, color=color)
-        embed.set_thumbnail(url=image_url)
-        embed.add_field(name="Tipos", value=", ".join(types), inline=False)
-        embed.add_field(name="Total de stats", value=total, inline=False)
-        embed.add_field(name="Estadísticas", value="\n".join(stats), inline=False)
-        await ctx.send(embed=embed)
-    else:
-        await ctx.send("Pokémon no encontrado, comprueba que has escrito bien el nombre y que el pokémon existe")
+    await get_pk_info(ctx, name)
 pkinfo.category = "Info Pokémon"
 
 @commands.command(name="tipos", help="Este comando recibe uno o varios tipos de pokémon y retorna sus debilidades y resistencias")

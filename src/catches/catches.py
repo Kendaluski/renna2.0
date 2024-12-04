@@ -115,7 +115,7 @@ class CatchButton(discord.ui.Button):
                     cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
                     conn.commit()
             else:
-                await interaction.response.send_message("Ya has atrapado cinco pokémon hoy", ephemeral=True)
+                await interaction.response.send_message("Ya has atrapado cinco pokémon hoy <:Sadge:1259834661622910988>", ephemeral=True)
         except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
             await interaction.followup.send_message("An error occurred while catching the Pokémon.", ephemeral=True)
@@ -154,7 +154,7 @@ async def pkc(ctx):
             if last_used_date < today:
                 count = 10
             if count == 0:
-                await ctx.send("Has alcanzado el límite de pokémon salvajes diarios, vuelve mañana")
+                await ctx.send("Has alcanzado el límite de pokémon salvajes diarios <:Sadge:1259834661622910988>, vuelve mañana")
                 return
             cursor.execute("UPDATE pusers SET count = %s, last_used = %s WHERE user_id = %s", (count - 1, today, ctx.author.id,))
         conn.commit()
