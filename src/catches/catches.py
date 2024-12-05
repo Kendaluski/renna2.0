@@ -179,7 +179,7 @@ async def pkc(ctx):
                     if image_url is None:
                         image_url = data['sprites']['front_shiny']
                     shiny = True
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció, atrápalo {ctx.author.name}!", description=f"Es un {translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció, atrápalo {ctx.author.name}!", description=f"Es un [{data['id']}]{translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
                     cursor.execute("UPDATE pusers SET daily_streak = 0 WHERE user_id = %s", (ctx.author.id,))
                     conn.commit()
                 else:
@@ -187,7 +187,7 @@ async def pkc(ctx):
                     if image_url is None:
                         image_url = data['sprites']['front_default']
                     shiny = False
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció!, atrápalo {ctx.author.name}", description=f"Es un {translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció!, atrápalo {ctx.author.name}", description=f"Es un [{data['id']}]{translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
 
                 embed.set_image(url=image_url)
 

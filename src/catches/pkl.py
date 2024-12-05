@@ -58,7 +58,7 @@ async def pkl(ctx, *args):
         else:
             cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s ORDER BY stats DESC", (ctx.author.id,))
             result = cursor.fetchall()
-            if result is None:
+            if not result:
                 await ctx.send("No tienes ningún pokémon atrapado <:Sadge:1259834661622910988>")
                 return
             if args and args[0] == "l":
