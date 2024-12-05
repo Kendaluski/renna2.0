@@ -176,14 +176,14 @@ async def pkc(ctx):
                 types = [translate(t['type']['name']) for t in data['types']]
                 stats = sum([stat['base_stat'] for stat in data['stats']])
 
-                bchance = 1 / 512
+                bchance = 1 / 256
                 ap = bchance * (daily_streak * 2)
                 if random.random() < ap:
                     image_url = data['sprites']['other']['showdown']['front_shiny']
                     if image_url is None:
                         image_url = data['sprites']['front_shiny']
                     shiny = True
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció. Su id es [{data['id']}] atrápalo {ctx.author.name}!", description=f"Es un [{data['id']}]{translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció! Su id es [{data['id']}].\nAtrápalo {ctx.author.name}!", description=f"Es un [{data['id']}]{translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
                     cursor.execute("UPDATE pusers SET daily_streak = 0 WHERE user_id = %s", (ctx.author.id,))
                     conn.commit()
                 else:
@@ -191,7 +191,7 @@ async def pkc(ctx):
                     if image_url is None:
                         image_url = data['sprites']['front_default']
                     shiny = False
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció!, atrápalo {ctx.author.name}", description=f"Es un {translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció! Su id es [{data['id']}].\nAtrápalo {ctx.author.name}", description=f"Es un {translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
 
                 embed.set_image(url=image_url)
 
@@ -225,6 +225,10 @@ async def rolls(ctx):
             await ctx.send(f"{ctx.author.name} no tienes tiradas de pokémon disponibles")
         else:
             count, daily_catch_count, daily_streak = result
+            if count < 0 or daily_catch_count < 0:
+                await ctx.send(f"{ctx.author.name}, tienes 0 tiradas de pokémon diarias restantes, puedes atrapar 0 pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
+                cursor.execute("UPDATE pusers SET count = 0, daily_catch_count = 0 WHERE user_id = %s", (ctx.author.id,))
+                conn.commit()
             await ctx.send(f"{ctx.author.name}, tienes {count} tiradas de pokémon diarias restantes, puedes atrapar {daily_catch_count} pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
