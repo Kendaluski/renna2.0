@@ -106,6 +106,8 @@ class CatchButton(discord.ui.Button):
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
                 daily_catch_count = 5
+            if daily_catch_count < 0:
+                daily_catch_count = 0
             if daily_catch_count > 0:
                 daily_catch_count -= 1
                 cursor.execute("UPDATE pusers SET daily_catch_count = %s, last_catched = %s WHERE user_id = %s", (daily_catch_count, last_catched, user_id,))
@@ -157,6 +159,8 @@ async def pkc(ctx):
             last_used_date = last_used
             if last_used_date < today:
                 count = 10
+            if count < 0:
+                count = 0
             if count == 0:
                 await ctx.send("Has alcanzado el límite de pokémon salvajes diarios <:Sadge:1259834661622910988>, vuelve mañana")
                 return
@@ -179,7 +183,7 @@ async def pkc(ctx):
                     if image_url is None:
                         image_url = data['sprites']['front_shiny']
                     shiny = True
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció, atrápalo {ctx.author.name}!", description=f"Es un [{data['id']}]{translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció. Su id es [{data['id']}] atrápalo {ctx.author.name}!", description=f"Es un [{data['id']}]{translate(data['name'])} **SHINY** de tipo {', '.join(types)}", color=0xFFA500)
                     cursor.execute("UPDATE pusers SET daily_streak = 0 WHERE user_id = %s", (ctx.author.id,))
                     conn.commit()
                 else:
@@ -187,7 +191,7 @@ async def pkc(ctx):
                     if image_url is None:
                         image_url = data['sprites']['front_default']
                     shiny = False
-                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció!, atrápalo {ctx.author.name}", description=f"Es un [{data['id']}]{translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
+                    embed = discord.Embed(title=f"¡Un pokémon salvaje apareció!, atrápalo {ctx.author.name}", description=f"Es un {translate(data['name'])} de tipo {', '.join(types)}", color=0xFFA500)
 
                 embed.set_image(url=image_url)
 

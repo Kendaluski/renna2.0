@@ -61,6 +61,7 @@ async def pkl(ctx, *args):
             if not result:
                 await ctx.send("No tienes ningún pokémon atrapado <:Sadge:1259834661622910988>")
                 return
+
             if args and args[0] == "l":
                 embeds = gen_embed(result, ctx, cursor, True)
             elif len(args) == 0:
