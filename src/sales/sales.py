@@ -10,10 +10,10 @@ db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
 
 class ConfirmButton(discord.ui.Button):
-    def __init__(self, user_id, id, all):
+    def __init__(self, user_id, ids, all):
         super().__init__(style=discord.ButtonStyle.success, label="Confirmar")
         self.user_id = user_id
-        self.id = id
+        self.ids = ids
         self.all = all
     
     async def callback(self, interaction: discord.Interaction):
@@ -29,49 +29,58 @@ class ConfirmButton(discord.ui.Button):
                 port=db_port
             )
             cursor = conn.cursor()
-            cursor.execute(f"SELECT COUNT(pk_id), COUNT(CASE WHEN shiny = TRUE THEN 1 END) FROM pcatches WHERE user_id = {interaction.user.id} AND pk_id = {self.id}")
-            result = cursor.fetchall()
-            p_count, s_count = result[0]
-            if s_count >= 2 and self.all == False:
-                s_count -= 1
-            if s_count == 1 and self.all == False:
-                s_count = 0
-            cursor.execute(f"SELECT stats FROM pcatches WHERE user_id = {interaction.user.id} AND pk_id = {self.id}")
-            stats = cursor.fetchall()
             total_to_add = 0
-            if not all:
-                important_stats = stats[1:]
-            else:
-                important_stats = stats
-            for stat in important_stats:
-                if stat[0] < 500:
-                    total_to_add += 0.5
-                elif stat[0] >= 500 and stat[0] < 700:
-                    total_to_add += 1
-                elif stat[0] >= 700:
-                    total_to_add += 3
-            total_to_add += 2 * s_count
-            total_to_add = total_to_add
+            names = []
+            for pk_id in self.ids:
+                cursor.execute(f"SELECT COUNT(pk_id), COUNT(CASE WHEN shiny = TRUE THEN 1 END) FROM pcatches WHERE user_id = {interaction.user.id} AND pk_id = {pk_id}")
+                result = cursor.fetchall()
+                p_count, s_count = result[0]
+                if p_count == 0:
+                    await interaction.response.send_message(f"{interaction.user.name}, no tienes el pokémon con ID {pk_id}")
+                    return
+                if p_count == 1 and not self.all:
+                    await interaction.response.send_message(f"{interaction.user.name}, no puedes vender tu último pokémon con ID {pk_id} si no lo especificas con 'all'")
+                    return
+                if s_count >= 2 and self.all == False:
+                    s_count -= 1
+                if s_count == 1 and self.all == False:
+                    s_count = 0
+                cursor.execute(f"SELECT stats FROM pcatches WHERE user_id = {interaction.user.id} AND pk_id = {pk_id}")
+                stats = cursor.fetchall()
+                if not self.all:
+                    important_stats = stats[1:]
+                else:
+                    important_stats = stats
+                for stat in important_stats:
+                    if stat[0] < 500:
+                        total_to_add += 0.5
+                    elif stat[0] >= 500 and stat[0] < 700:
+                        total_to_add += 1
+                    elif stat[0] >= 700:
+                        total_to_add += 3
+                total_to_add += 2 * s_count
+                delete = "WITH cte AS ( SELECT id FROM pcatches WHERE user_id = %s AND pk_id = %s LIMIT %s) DELETE FROM pcatches WHERE id IN (SELECT id FROM cte);"
+                if not self.all:
+                    cursor.execute(delete, (interaction.user.id, pk_id, p_count - 1))
+                else:
+                    cursor.execute(delete, (interaction.user.id, pk_id, p_count))
+                conn.commit()
+                if s_count > 0 and not self.all:
+                    cursor.execute(f"UPDATE pcatches SET shiny = True WHERE user_id = {interaction.user.id} AND pk_id = {pk_id}")
+                    conn.commit()
+                req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{pk_id}")
+                if req.status_code == 200:
+                    data = req.json()
+                    name = data['name']
+                    name = name.capitalize()
+                    names.append(name)
             cursor.execute(f"UPDATE pusers SET daily_catch_count = COALESCE(daily_catch_count, 0) + {total_to_add}, count = COALESCE(count, 0) + {total_to_add} WHERE user_id = {interaction.user.id}")
             conn.commit()
-            delete = "WITH cte AS ( SELECT id FROM pcatches WHERE user_id = %s AND pk_id = %s LIMIT %s) DELETE FROM pcatches WHERE id IN (SELECT id FROM cte);"
+            names = ", ".join(names)
             if not self.all:
-                cursor.execute(delete, (interaction.user.id, self.id, p_count - 1))
+                msg = f"Has vendido " + str(p_count - 1) + " " + names + " , a cambio has ganado " + str(total_to_add) + " capturas diarias "
             else:
-                cursor.execute(delete, (interaction.user.id, self.id, p_count))
-            conn.commit()
-            if s_count > 0 and not self.all:
-                cursor.execute(f"UPDATE pcatches SET shiny = True WHERE user_id = {interaction.user.id} AND pk_id = {self.id}")
-                conn.commit()
-            req = requests.get(f"https://pokeapi.co/api/v2/pokemon/{self.id}")
-            if req.status_code == 200:
-                data = req.json()
-                name = data['name']
-                name = name.capitalize()
-            if not self.all:
-                msg = f"Has vendido " + str(p_count - 1) + " " + name + " , a cambio has ganado " + str(total_to_add) + " capturas diarias "
-            else:
-                msg = f"Has vendido todos tus " + name + ", a cambio has ganado " + str(total_to_add) + " capturas diarias "
+                msg = f"Has vendido todos tus " + names + ", a cambio has ganado " + str(total_to_add) + " capturas diarias "
             await interaction.response.send_message(msg)
             await interaction.message.delete()
         except (Exception, psycopg2.Error) as error:
@@ -97,17 +106,10 @@ class CancelButton(discord.ui.Button):
 
 
 @commands.command(name="sell", help="Este comando vende todos los pokémon, el ID especificado, del usuario menos 1, a no ser que se le añada el argumento all después del ID. A cambio, el usuario recibe más capturas diarias, dependiendo de la cantidad de pokémon vendidos, sus estadísticas así como si es shiny o no.\n Si vendes un pokémon que tiene menos de 500 de stats, recibirás 0.5 capturas diarias por cada uno, si tiene entre 500 y 700, recibirás 1 captura diaria por cada uno y si tiene más de 700, recibirás 3 capturas diarias por cada uno. Además, si es shiny recibirás 2 capturas más por cada shiny")
-async def sell(ctx, id: int, *args):
-    if id < 1:
-        await ctx.send("El id del pokémon debe ser mayor a 0")
+async def sell(ctx, *args):
+    if len(args) == 0:
+        await ctx.send(f"{ctx.author.name}, debes ingresar al menos un id del pokémon que quieres vender!")
         return
-    if args:
-        if args[0] != "all":
-            await ctx.send("El comando solo acepta el ID del pokémon que quieres vender y la palabra 'all' para vender todos los pokémon de ese ID")
-            return
-        all = True
-    else:
-        all = False
     try:
         conn = psycopg2.connect(
             dbname=db_name, 
@@ -117,13 +119,32 @@ async def sell(ctx, id: int, *args):
             port=db_port
         )
         cursor = conn.cursor()
-        cursor.execute(f"SELECT COUNT(pk_id), COUNT(shiny) FROM pcatches WHERE user_id = {ctx.author.id} AND pk_id = {id}")
-        result = cursor.fetchall()
-        if result[0][0] == 0:
-            await ctx.send(f"{ctx.author.name}, no tienes ese pokémon")
-            return
-        if result[0][0] == 1 and not all:
-            await ctx.send(f"{ctx.author.name}, no puedes vender tu último pokémon si no lo especificas con 'all'")
+        ids = []
+        all = False
+        for arg in args:
+            if arg.lower() == "all":
+                all = True
+        for arg in args:
+            if arg.lower() != "all":
+                try:
+                    pk_id = int(arg)
+                    if pk_id < 1:
+                        await ctx.send(f"{ctx.author.name}, el id del pokémon debe ser mayor que 0")
+                        return
+                    cursor.execute(f"SELECT COUNT(pk_id) FROM pcatches WHERE user_id = {ctx.author.id} AND pk_id = {pk_id}")
+                    result = cursor.fetchall()
+                    if result[0][0] == 0:
+                        await ctx.send(f"{ctx.author.name}, no tienes el pokémon con ID {pk_id}")
+                        return
+                    elif result[0][0] == 1 and not all:
+                        await ctx.send(f"{ctx.author.name}, no puedes vender tu último pokémon con ID {pk_id} si no lo especificas con 'all'")
+                        return
+                    ids.append(pk_id)
+                except ValueError:
+                    await ctx.send(f"{ctx.author.name}, el id o ids del pokémon debe ser un número")
+                    return
+        if not ids:
+            await ctx.send(f"{ctx.author.name}, debes ingresar al menos un id del pokémon que quieres vender!")
             return
     except (Exception, psycopg2.Error) as error:
             print("Error while connecting to PostgreSQL", error)
@@ -134,7 +155,7 @@ async def sell(ctx, id: int, *args):
             cursor.close()
             conn.close()
     view = discord.ui.View()
-    view.add_item(ConfirmButton(ctx.author.id, id, all))
+    view.add_item(ConfirmButton(ctx.author.id, ids, all))
     view.add_item(CancelButton(ctx.author.id))
     if not all:
         await ctx.send(f"¿{ctx.author.name} estás seguro de que quieres vender todas las copias de ese pokémon? Recuerda que te quedarás con 1 siempre que no lo especifiques", view=view)

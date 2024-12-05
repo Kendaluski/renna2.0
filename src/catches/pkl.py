@@ -40,7 +40,7 @@ async def pkl(ctx, *args):
         cursor = conn.cursor()
         if args and args[0] != "l":
             pkid = (int)(args[0])
-            cursor.execute("SELECT pk_id, stats, shiny, count(pk_id) FROM pcatches WHERE user_id = %s AND pk_id = %s", (ctx.author.id, pkid,))
+            cursor.execute("SELECT pk_id, stats, shiny, count(pk_id) FROM pcatches WHERE user_id = %s AND pk_id = %s ORDER BY stats DESC", (ctx.author.id, pkid,))
             result = cursor.fetchall()
             if len(result) == 0:
                 await ctx.send("No tienes ese pokémon atrapado <:Sadge:1259834661622910988>")
@@ -56,7 +56,7 @@ async def pkl(ctx, *args):
                         shiny = True
             await get_pk_info(ctx, name, True, shiny, count)
         else:
-            cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s", (ctx.author.id,))
+            cursor.execute("SELECT pk_id, stats, shiny FROM pcatches WHERE user_id = %s ORDER BY stats DESC", (ctx.author.id,))
             result = cursor.fetchall()
             if result is None:
                 await ctx.send("No tienes ningún pokémon atrapado <:Sadge:1259834661622910988>")
