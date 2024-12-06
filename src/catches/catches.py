@@ -117,7 +117,7 @@ class CatchButton(discord.ui.Button):
                 await interaction.response.send_message("¡Has atrapado un pokémon!", ephemeral=True)
                 self.disabled = True
                 await interaction.message.edit(view=self.view)
-                if daily_catch_count == 0:
+                if last_catched < datetime.now().date():
                     cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
                     conn.commit()
             else:
