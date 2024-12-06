@@ -229,6 +229,7 @@ async def rolls(ctx):
                 await ctx.send(f"{ctx.author.name}, tienes 0 tiradas de pokémon diarias restantes, puedes atrapar 0 pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
                 cursor.execute("UPDATE pusers SET count = 0, daily_catch_count = 0 WHERE user_id = %s", (ctx.author.id,))
                 conn.commit()
+                return
             await ctx.send(f"{ctx.author.name}, tienes {count} tiradas de pokémon diarias restantes, puedes atrapar {daily_catch_count} pokémon hoy y tu racha de capturas diarias es de {daily_streak}")
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
