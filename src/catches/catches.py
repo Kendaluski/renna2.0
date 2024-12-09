@@ -106,6 +106,8 @@ class CatchButton(discord.ui.Button):
             if last_catched is None or last_catched < datetime.now().date():
                 last_catched = datetime.now().date()
                 daily_catch_count = 5
+                cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
+                conn.commit()
             if daily_catch_count < 0:
                 daily_catch_count = 0
             if daily_catch_count > 0:
@@ -116,10 +118,7 @@ class CatchButton(discord.ui.Button):
                 conn.commit()
                 await interaction.response.send_message("¡Has atrapado un pokémon!", ephemeral=True)
                 self.disabled = True
-                await interaction.message.edit(view=self.view)
-                if last_catched < datetime.now().date():
-                    cursor.execute("UPDATE pusers SET daily_streak = COALESCE(daily_streak,0) + 1 WHERE user_id = %s", (user_id,))
-                    conn.commit()
+                await interaction.message.edit(view=self.view)    
             else:
                 await interaction.response.send_message("Ya has atrapado cinco pokémon hoy <:Sadge:1259834661622910988>", ephemeral=True)
         except (Exception, psycopg2.Error) as error:
